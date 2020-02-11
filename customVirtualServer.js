@@ -5,13 +5,6 @@ const getStructDirectory = require('./getStructDirectory.js');
 const RootUrl = 'http://127.0.0.1:80/api/2.0/files/@my'
 const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSlnP9yv90WypKrW6joNF1jGStdN3oshPjJ5X5gpyrvqjODL3yIftyv9mIlXEhIybZTl1dklJM5Y0SMlgnEwOjp6wpUIVAQ=='
 
-/*function Resourse(data)
-{
-    this.constructor = Resourse;
-    this.props = new webdav.LocalPropertyManager(data ? data.props : undefined);
-    this.locks = new webdav.LocalLockManager();
-}*/
-
 class VirtualResourse
 {
     constructor(){
@@ -35,6 +28,21 @@ class VirtualResourse
         this.struct.folders.forEach((el) => {
             if(element == el.title){
                 callback(null, 'Directory')
+            }
+        })
+    }
+    getSize(path, callback){
+        let pathArray = path.split('/');
+        let element = pathArray[pathArray.length - 1]
+        this.struct.files.forEach((el) => {
+            if(element == el.title){
+                let sizeArray = el.contentLength.split(' ');
+                let dimension = sizeArray[sizeArray.length -1];
+                let size = sizeArray[sizeArray.length -2];
+                switch(dimension){
+                    case 'KB':
+                        callback(null, Number(size) * 1000)
+                }
             }
         })
     }
@@ -79,8 +87,10 @@ class customFS extends webdav.FileSystem
     }
 
     _size(path, ctx, callback){
-        console.log('>>>size>>>', path.toString())
-        callback(null, 1234)
+        const sPath = path.toString();
+        this.res.getSize(sPath, (err, size) => {
+            callback(null, size)
+        })
     }
 
     _type(path, ctx, callback) {
@@ -90,8 +100,6 @@ class customFS extends webdav.FileSystem
             callback(null, webdav.ResourceType.Directory)
         }
         else{
-            let file = sPath.split('/');
-            file[file.length - 1]
             this.res.getType(sPath, (err, type) => {
                 if(type == 'Directory'){
                     callback(null, webdav.ResourceType.Directory)
