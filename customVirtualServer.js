@@ -1,5 +1,9 @@
 const webdav = require('webdav-server').v2;
-const struct = require('./data.js');
+const data = require('./data')
+const request = require('request');
+const getStructDirectory = require('./getStructDirectory.js');
+const RootUrl = 'http://127.0.0.1:80/api/2.0/files/@my'
+const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSlnP9yv90WypKrW6joNF1jGStdN3oshPjJ5X5gpyrvqjODL3yIftyv9mIlXEhIybZTl1dklJM5Y0SMlgnEwOjp6wpUIVAQ=='
 
 /*function Resourse(data)
 {
@@ -8,40 +12,33 @@ const struct = require('./data.js');
     this.locks = new webdav.LocalLockManager();
 }*/
 
-class VirtualResourse extends webdav.VirtualFileSystemResource
+class VirtualResourse
 {
     constructor(){
-        super(data)
+        this.struct = {};
+    }
+    readDir(url, token, callback){
+        getStructDirectory(url, token, (err, st) => {
+            this.struct.folders = st.folders;
+            this.struct.files = st.files;
+            callback(null, st)
+        })
+    }
+    getType(path, callback){
+        let pathArray = path.split('/');
+        let element = pathArray[pathArray.length - 1]
+        this.struct.files.forEach((el) => {
+            if(element == el.title){
+                callback(null, 'File')
+            }
+        })
+        this.struct.folders.forEach((el) => {
+            if(element == el.title){
+                callback(null, 'Directory')
+            }
+        })
     }
 }
-
-/*var VirtualResourse = (function(){
-    function VirtualResourse(data){
-        let strDir;
-            //var r = data;
-            if(data == '/'){
-                this.type = webdav.ResourceType.Directory;
-                this.propertyManager = new webdav.LocalPropertyManager();
-                this.lockManager = new webdav.LocalLockManager();
-            }
-            let response = struct.struct1;
-            response.forEach((el) => {
-                if(el.name == data.substr(1)){
-                    this.name = el.name;
-                    this.type = el.type;
-                    this.size = el.size;
-                    this.propertyManager = new webdav.LocalPropertyManager();
-                    this.lockManager = new webdav.LocalLockManager();
-                }
-            })
-            if(data == '/'){
-                this.strDir = struct.struct1;
-            }
-    }
-    return VirtualResourse;
-}())*/
-
-
 
 function Serializer()
 {
@@ -51,16 +48,11 @@ function Serializer()
         },
         serialize(fs, callback){
             callback(null, {
-                resources: fs.resources
+                //resourse: fs.resourse
             })
         },
         unserialize(serializedData, callback){
             const fs = new customFS();
-            //fs.resources = serializedData.resources;
-            for(const path in serializedData.resources)
-            {
-                fs.resources[path] = new VirtualResourse(serializedData.resources[path]);
-            }
             callback(null, fs)
         },
         constructor: Serializer
@@ -71,32 +63,19 @@ class customFS extends webdav.FileSystem
 {
     constructor(){
         super(new Serializer())
-        this.resources = {
-            '/': new VirtualResourse('/')
-        };
+        this.props = new webdav.LocalPropertyManager();
+        this.locks = new webdav.LocalLockManager();
+        this.res = new VirtualResourse();
     }
 
     _lockManager(path, ctx, callback) {
         console.log('locks')
-        let resource = this.resources[path.toString()];
-        if(!resource)
-        {
-            resource = new VirtualResourse(path.toString());
-            this.resources[path.toString()] = resource;
-        }
-        callback(null, resource['locks'])
+        callback(null, this.locks)
     }
 
     _propertyManager(path, ctx, callback) {
         console.log('props')
-        let resource = this.resources[path.toString()];
-        if(!resource)
-        {
-            resource = new VirtualResourse(path.toString());
-            this.resources[path.toString()] = resource;
-        }
-        console.log(resource['props'])
-        callback(null, resource['props'])
+        callback(null, this.props)
     }
 
     _size(path, ctx, callback){
@@ -105,36 +84,37 @@ class customFS extends webdav.FileSystem
     }
 
     _type(path, ctx, callback) {
-        console.log('>>>resource>>>', this.resource[path]);
         const sPath = path.toString();
-        console.log('>>>sPath>>>', sPath)
-        let ssPath = sPath.substr(1);
 
-        //console.log('>>>ssPath>>>', ssPath)
-        if(ssPath.length > 0){
-            data.struct1.forEach((t) => {
-                if(ssPath.toString() == t.name){
-                    callback(null, t.type == 'Directory'? webdav.ResourceType.Directory : webdav.ResourceType.File)
+        if(sPath == '/'){
+            callback(null, webdav.ResourceType.Directory)
+        }
+        else{
+            let file = sPath.split('/');
+            file[file.length - 1]
+            this.res.getType(sPath, (err, type) => {
+                if(type == 'Directory'){
+                    callback(null, webdav.ResourceType.Directory)
+                }
+                else{
+                    callback(null, webdav.ResourceType.File)
                 }
             })
         }
-        else{
-            callback(null, webdav.ResourceType.Directory)
-        }
-        //console.log('>>>sPath>>>', sPath)
-        //let ssPath = sPath.substr(1);
-        //console.log('>>>ssPath>>>', ssPath)
-        //callback(null, webdav.ResourceType.Directory)
     }
 
     _readDir(path, ctx, callback){
-        let st = []
+        let elemOfDir = []
         console.log('readDir')
-        data.struct1.forEach((el) => {
-            st.push(el.name)
+        this.res.readDir(RootUrl, accessToken, (err, struct) => {
+            struct.folders.forEach(el => {
+                elemOfDir.push(el.title);
+            });
+            struct.files.forEach(el => {
+                elemOfDir.push(el.title);
+            });
+            callback(null, elemOfDir)
         })
-
-        callback(null, st)
     }
 }
 

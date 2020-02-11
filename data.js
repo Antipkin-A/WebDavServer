@@ -1,7 +1,7 @@
 let struct1 = 
     [
         {
-            name: 'folder1',
+            name: "folder1",
             type: 'Directory',
             size: 100,
             lastModifiedDate: new Date(2011, 0, 1, 2, 3, 4)          

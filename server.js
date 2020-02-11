@@ -1,6 +1,8 @@
 const webdav = require('webdav-server').v2;
 const data = require('./data.js')
 
+webdav.P
+
 var customFileSystemResourse = function(data)
     {
         this.props = new webdav.LocalPropertyManager(data ? data.props : undefined);
