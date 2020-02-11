@@ -1,5 +1,5 @@
 const webdav = require('webdav-server').v2;
-const data = require('./data.js');
+const struct = require('./data.js');
 
 /*function Resourse(data)
 {
@@ -14,6 +14,34 @@ class VirtualResourse extends webdav.VirtualFileSystemResource
         super(data)
     }
 }
+
+/*var VirtualResourse = (function(){
+    function VirtualResourse(data){
+        let strDir;
+            //var r = data;
+            if(data == '/'){
+                this.type = webdav.ResourceType.Directory;
+                this.propertyManager = new webdav.LocalPropertyManager();
+                this.lockManager = new webdav.LocalLockManager();
+            }
+            let response = struct.struct1;
+            response.forEach((el) => {
+                if(el.name == data.substr(1)){
+                    this.name = el.name;
+                    this.type = el.type;
+                    this.size = el.size;
+                    this.propertyManager = new webdav.LocalPropertyManager();
+                    this.lockManager = new webdav.LocalLockManager();
+                }
+            })
+            if(data == '/'){
+                this.strDir = struct.struct1;
+            }
+    }
+    return VirtualResourse;
+}())*/
+
+
 
 function Serializer()
 {
@@ -71,11 +99,17 @@ class customFS extends webdav.FileSystem
         callback(null, resource['props'])
     }
 
+    _size(path, ctx, callback){
+        console.log('>>>size>>>', path.toString())
+        callback(null, 1234)
+    }
+
     _type(path, ctx, callback) {
-        console.log('>>>resource>>>', this.resource[path.toString()]);
+        console.log('>>>resource>>>', this.resource[path]);
         const sPath = path.toString();
         console.log('>>>sPath>>>', sPath)
         let ssPath = sPath.substr(1);
+
         //console.log('>>>ssPath>>>', ssPath)
         if(ssPath.length > 0){
             data.struct1.forEach((t) => {
@@ -99,6 +133,7 @@ class customFS extends webdav.FileSystem
         data.struct1.forEach((el) => {
             st.push(el.name)
         })
+
         callback(null, st)
     }
 }
