@@ -5,24 +5,6 @@ const VirtualResources = require('./customVirtualResources');
 //let folderIdUrl = `http://127.0.0.1:80/api/2.0/files/${folderId}`;
 //const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSlnP9yv90WypKrW6joNF1jGStdN3oshPjJ5X5gpyrvqjODL3yIftyv9mIlXEhIybZTl1dklJM5Y0SMlgnEwOjp6wpUIVAQ=='
 
-/*function Serializer()
-{
-    return{
-        uid(){
-            return 'customFSByOnlyOffice'
-        },
-        serialize(fs, callback){
-            callback(null, {
-                //resourse: fs.resourse
-            })
-        },
-        unserialize(serializedData, callback){
-            const fs = new customFileSystem();
-            callback(null, fs)
-        },
-        constructor: Serializer
-    }
-}*/
 
 class customFileSystem extends webdav.FileSystem
 {
@@ -34,22 +16,38 @@ class customFileSystem extends webdav.FileSystem
     }
 
     _lockManager(path, ctx, callback) {
-        console.log('locks')
         callback(null, this.locks)
     }
 
     _propertyManager(path, ctx, callback) {
-        console.log('props')
         callback(null, this.props)
     }
 
+    /*_rename(pathFrom, newName, ctx, callback){
+        console.log(pathFrom, newName, '>>>>>>>>rename>>>>>>>>>')
+    }*/
 
+    _create(path, ctx, callback){
+        const sPath = path.toString();
+        console.log('create path: ', sPath)
+        this.manageResource.create(sPath, ctx.context.user.username, ctx.context.user.password, (err) => {
+            if(err){
+                callback(webdav.Errors.IntermediateResourceMissing)
+            }
+            callback();
+        });
+    }
 
     _size(path, ctx, callback){
+        console.log('<<<<SSSSIIIIZEEEEE>>>>>')
         const sPath = path.toString();
         this.manageResource.getSize(sPath, (err, size) => {
             callback(null, size)
         })
+    }
+
+    _openReadStream(path, ctx, callback){
+        console.log('>>>>>Reader>>>>>>')
     }
 
     _type(path, ctx, callback) {
@@ -59,7 +57,10 @@ class customFileSystem extends webdav.FileSystem
             callback(null, webdav.ResourceType.Directory)
         }
         else{
-            this.manageResource.getType(sPath, (err, type) => {
+            //console.log('>>Call method _type<<', '>>method: ' + ctx.context.request.method + ' >>url: ' + ctx.context.request.url)
+            let method = ctx.context.request.method;
+            let url = ctx.context.request.url;
+            this.manageResource.getType(sPath, method, (err, type) => {
                 if(type == 'Directory'){
                     callback(null, webdav.ResourceType.Directory)
                 }
@@ -68,13 +69,13 @@ class customFileSystem extends webdav.FileSystem
                 }
             })
         }
+        //callback(null, webdav.ResourceType.Directory)
     }
 
     _readDir(path, ctx, callback){
         const sPath = path.toString();
 
         let elemOfDir = []
-        console.log(ctx.context.user.username, ctx.context.user.password)
         this.manageResource.readDir(sPath, ctx.context.user.username, ctx.context.user.password, (err, struct) => {
             struct.folders.forEach(el => {
                 elemOfDir.push(el.title);
@@ -82,23 +83,10 @@ class customFileSystem extends webdav.FileSystem
             struct.files.forEach(el => {
                 elemOfDir.push(el.title);
             });
+            //console.log(elemOfDir)
             callback(null, elemOfDir)
         })
     }
 }
 
 module.exports = customFileSystem;
-
-/*const server = new webdav.WebDAVServer({
-    port: 1900,
-    rootFileSystem: new customFS()
-});
-
-server.afterRequest((arg, next) => {
-    console.log('>>', arg.request.method, arg.fullUri(), '>', arg.response.statusCode, arg.response.statusMessage);
-    console.log('paths: ', arg.requested.path.paths)
-    //console.log('request_url: ', arg.request.url)
-    next();
-})
-
-server.start((s) => console.log('Ready on port', s.address().port));*/

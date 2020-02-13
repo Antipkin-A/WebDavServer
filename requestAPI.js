@@ -2,7 +2,8 @@ var request = require('request');
 const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSlnP9yv90WypKrW6joNF1jGStdN3oshPjJ5X5gpyrvqjODL3yIftyv9mIlXEhIybZTl1dklJM5Y0SMlgnEwOjp6wpUIVAQ=='
 const {
     domen,
-    const_api
+    const_api,
+    create_folder
 } = require('./config.ts')
 
 var getStructDirectory = function(folderId, username, password, callback)
@@ -24,4 +25,31 @@ var getStructDirectory = function(folderId, username, password, callback)
     )
 }
 
-module.exports = {getStructDirectory};
+var createDirectory = function(parentId, title, username, password, callback)
+{
+    request.post(
+        {
+            method: 'POST',
+            url: `${domen}${const_api}${create_folder}${parentId}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "title": title
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            console.log(JSON.parse(response.body).response)
+            callback(null, JSON.parse(response.body).response);
+        }
+    )
+}
+
+module.exports = {
+    getStructDirectory,
+    createDirectory
+};
