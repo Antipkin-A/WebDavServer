@@ -32,10 +32,10 @@ class CustomVirtualResources
     }
 
     readDir(path, username, password, callback){
-        if(this.struct[path]){
+        /*if(this.struct[path]){
             callback(null, this.struct[path])
-        }
-        else{
+        }*/
+        //else{
             console.log(path)
             if(path == '/'){
                 let folderId = pathRootDirectory;
@@ -74,7 +74,7 @@ class CustomVirtualResources
                     }
                 })
             }
-        }
+        //}
     }
 
     getType(path, method, callback){
@@ -84,22 +84,26 @@ class CustomVirtualResources
         if(method == 'MKCOL'){
             callback(null, 'Directory')
         }
-        let pathArray = path.split('/');
-        let element = pathArray.pop();
-        if(pathArray.length < 2){
-            pathArray[0] = '/'
+        else{
+            let pathArray = path.split('/');
+            let element = pathArray.pop();
+            if(pathArray.length <= 1){
+                pathArray[0] = '/'
+            }
+            console.log(this.struct)
+            let parentFolder = pathArray.join('/');
+
+            this.struct[parentFolder].files.forEach((el) => {
+                if(element == el.title){
+                    callback(null, 'File')
+                }
+            })
+            this.struct[parentFolder].folders.forEach((el) => {
+                if(element == el.title){
+                    callback(null, 'Directory')
+                }
+            })
         }
-        let parentFolder = pathArray.join('/');
-        this.struct[parentFolder].files.forEach((el) => {
-            if(element == el.title){
-                callback(null, 'File')
-            }
-        })
-        this.struct[parentFolder].folders.forEach((el) => {
-            if(element == el.title){
-                callback(null, 'Directory')
-            }
-        })
     }
 
     getSize(path, callback){
