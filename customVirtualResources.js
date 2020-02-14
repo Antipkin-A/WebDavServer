@@ -1,7 +1,8 @@
 const webdav = require('webdav-server').v2;
 const {
     getStructDirectory,
-    createDirectory
+    createDirectory,
+    deleteDirectory
 } = require('./requestAPI.js');
 const {pathRootDirectory} = require('./config.ts')
 
@@ -10,33 +11,80 @@ class CustomVirtualResources
     constructor(){
         this.struct = {};
     }
-    create(path, username, password, callback){
+
+    parsePath(path){
         let pathArray = path.split('/');
-        let element = pathArray.pop();
+        let targetElement = pathArray.pop();
         if(pathArray.length <= 1){
             pathArray[0] = '/'
         }
-        let parentFolder = pathArray.join('/');
-        let parentId = this.struct[parentFolder].current.id;
-        console.log('parentFolder: ', parentFolder)
-        console.log('element: ', element)
-        createDirectory(parentId, element, username, password, (err, st) => {
-            if(err){
-                callback(err)
-            }
-            else{
-                this.struct[parentFolder].folders.push(st)
-                callback(null)
+        let parentPath = pathArray.join('/');
+        return{
+            element: targetElement,
+            parentFolder: parentPath
+        }
+    }
+
+    create(path, username, password, callback){
+
+        const {element, parentFolder} = this.parsePath(path);
+
+        //If we step or copy.... to unread directory, you must read it
+        if(!this.struct[parentFolder]){
+
+            this.readDir(parentFolder, username, password, (err, struct) => {
+                if(err){
+                    console.log('Error read dir')
+                }
+
+                let parentId = this.struct[parentFolder].current.id;
+                
+                createDirectory(parentId, element, username, password, (err, st) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        console.log('добавляю структуру: ', st)
+                        this.struct[parentFolder].folders.push(st)
+                        callback(null)
+                    }
+                })
+            })
+        }
+        else{
+            let parentId = this.struct[parentFolder].current.id;
+            
+            createDirectory(parentId, element, username, password, (err, st) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    console.log('добавляю структуру: ', st)
+                    this.struct[parentFolder].folders.push(st)
+                    callback(null)
+                }
+            })
+        }
+    }
+
+    delete(path, username, password, callback){
+        const {element, parentFolder} = this.parsePath(path);
+
+        this.struct[parentFolder].folders.forEach((el) => {
+            if(element == el.title){
+                deleteDirectory(el.id, username, password, (err, res) => {
+                    if(err){
+                        callback(err)
+                    }
+                    delete this.struct[parentFolder].folders.el
+                    callback(null)
+                })
             }
         })
     }
 
     readDir(path, username, password, callback){
-        /*if(this.struct[path]){
-            callback(null, this.struct[path])
-        }*/
-        //else{
-            console.log(path)
+        
             if(path == '/'){
                 let folderId = pathRootDirectory;
                 getStructDirectory(folderId, username, password, (err, st) => {
@@ -51,12 +99,7 @@ class CustomVirtualResources
                 })
             }
             else{
-                let pathArray = path.split('/');
-                let element = pathArray.pop();
-                if(pathArray.length <= 1){
-                    pathArray[0] = '/'
-                }
-                let parentFolder = pathArray.join('/');
+                const {element, parentFolder} = this.parsePath(path);
 
                 this.struct[parentFolder].folders.forEach((el) => {
                     if(element == el.title){
@@ -85,13 +128,7 @@ class CustomVirtualResources
             callback(null, 'Directory')
         }
         else{
-            let pathArray = path.split('/');
-            let element = pathArray.pop();
-            if(pathArray.length <= 1){
-                pathArray[0] = '/'
-            }
-            console.log(this.struct)
-            let parentFolder = pathArray.join('/');
+            const {element, parentFolder} = this.parsePath(path);
 
             this.struct[parentFolder].files.forEach((el) => {
                 if(element == el.title){
@@ -107,12 +144,8 @@ class CustomVirtualResources
     }
 
     getSize(path, callback){
-        let pathArray = path.split('/');
-        let element = pathArray.pop();
-        if(pathArray.length < 2){
-            pathArray[0] = '/'
-        }
-        let parentFolder = pathArray.join('/');
+        const {element, parentFolder} = this.parsePath(path);
+
         this.struct[parentFolder].files.forEach((el) => {
             if(element == el.title){
                 let sizeArray = el.contentLength.split(' ');
@@ -126,6 +159,11 @@ class CustomVirtualResources
                         callback(null, Number(size) * 1000000)
                         break
                 }
+            }
+        })
+        this.struct[parentFolder].folders.forEach((el) => {
+            if(element == el.title){
+                callback(null, 1)
             }
         })
     }

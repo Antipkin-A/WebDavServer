@@ -3,7 +3,7 @@ const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSln
 const {
     domen,
     const_api,
-    create_folder
+    folder
 } = require('./config.ts')
 
 var getStructDirectory = function(folderId, username, password, callback)
@@ -30,7 +30,7 @@ var createDirectory = function(parentId, title, username, password, callback)
     request.post(
         {
             method: 'POST',
-            url: `${domen}${const_api}${create_folder}${parentId}`,
+            url: `${domen}${const_api}${folder}${parentId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -43,7 +43,32 @@ var createDirectory = function(parentId, title, username, password, callback)
             if(err){
                 callback(err, null)
             }
-            console.log(JSON.parse(response.body).response)
+            console.log(JSON.parse(response.body))
+            callback(null, JSON.parse(response.body).response);
+        }
+    )
+}
+
+var deleteDirectory = function(folderId, username, password, callback)
+{
+    request.delete(
+        {
+            method: 'DELETE',
+            url: `${domen}${const_api}${folder}${folderId}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "deleteAfter": true,
+                "immediately": true
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            console.log(JSON.parse(response.body))
             callback(null, JSON.parse(response.body).response);
         }
     )
@@ -51,5 +76,6 @@ var createDirectory = function(parentId, title, username, password, callback)
 
 module.exports = {
     getStructDirectory,
-    createDirectory
+    createDirectory,
+    deleteDirectory
 };

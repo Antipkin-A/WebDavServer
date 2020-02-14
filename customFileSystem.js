@@ -30,12 +30,25 @@ class customFileSystem extends webdav.FileSystem
     _create(path, ctx, callback){
         const sPath = path.toString();
         console.log('create path: ', sPath)
+
         this.manageResource.create(sPath, ctx.context.user.username, ctx.context.user.password, (err) => {
             if(err){
                 callback(webdav.Errors.IntermediateResourceMissing)
             }
             callback();
         });
+    }
+
+    _delete(path, ctx, callback){
+        const sPath = path.toString();
+        console.log('<<<<DELETE>>>>>')
+
+        this.manageResource.delete(sPath, ctx.context.user.username, ctx.context.user.password, (err) => {
+            if(err){
+                callback(webdav.Errors.IntermediateResourceMissing)
+            }
+            callback();
+        })
     }
 
     _size(path, ctx, callback){
