@@ -9,7 +9,7 @@ const VirtualResources = require('./customVirtualResources');
 class customFileSystem extends webdav.FileSystem
 {
     constructor(){
-        super(/*new Serializer()*/)
+        super()
         this.props = new webdav.LocalPropertyManager();
         this.locks = new webdav.LocalLockManager();
         this.manageResource = new VirtualResources();
@@ -29,9 +29,8 @@ class customFileSystem extends webdav.FileSystem
 
     _create(path, ctx, callback){
         const sPath = path.toString();
-        console.log('create path: ', sPath)
 
-        this.manageResource.create(sPath, ctx.context.user.username, ctx.context.user.password, (err) => {
+        this.manageResource.create(sPath, ctx, ctx.context.user.username, ctx.context.user.password, (err) => {
             if(err){
                 callback(webdav.Errors.IntermediateResourceMissing)
             }
@@ -41,7 +40,6 @@ class customFileSystem extends webdav.FileSystem
 
     _delete(path, ctx, callback){
         const sPath = path.toString();
-        console.log('<<<<DELETE>>>>>')
 
         this.manageResource.delete(sPath, ctx.context.user.username, ctx.context.user.password, (err) => {
             if(err){
@@ -51,16 +49,33 @@ class customFileSystem extends webdav.FileSystem
         })
     }
 
+    /*_move(path, ctx, callback){
+        console.log('MMMOOOOVVEEEE')
+        const sPath = path.toString();
+    }*/
+
     _size(path, ctx, callback){
         console.log('<<<<SSSSIIIIZEEEEE>>>>>')
         const sPath = path.toString();
-        this.manageResource.getSize(sPath, (err, size) => {
+        
+        this.manageResource.getSize(sPath, ctx, (err, size) => {
             callback(null, size)
         })
     }
 
+    _openWriteStream(path, ctx, callback){
+        console.log('>>>>>Writer>>>>>>')
+        console.log('path: ', path);
+        console.log('ctx: ', ctx);
+    }
+
     _openReadStream(path, ctx, callback){
+        const sPath = path.toString();
         console.log('>>>>>Reader>>>>>>')
+
+        this.manageResource.downloadFile(sPath, ctx, (err, file) => {
+            callback(null, file)
+        })
     }
 
     _type(path, ctx, callback) {
@@ -71,9 +86,7 @@ class customFileSystem extends webdav.FileSystem
         }
         else{
             //console.log('>>Call method _type<<', '>>method: ' + ctx.context.request.method + ' >>url: ' + ctx.context.request.url)
-            let method = ctx.context.request.method;
-            let url = ctx.context.request.url;
-            this.manageResource.getType(sPath, method, (err, type) => {
+            this.manageResource.getType(sPath, ctx, (err, type) => {
                 if(type == 'Directory'){
                     callback(null, webdav.ResourceType.Directory)
                 }
@@ -82,12 +95,15 @@ class customFileSystem extends webdav.FileSystem
                 }
             })
         }
-        //callback(null, webdav.ResourceType.Directory)
     }
+
+    /*_lastModifiedDate(path, ctx, callback){
+        
+    }*/
 
     _readDir(path, ctx, callback){
         const sPath = path.toString();
-
+        console.log('readdir')
         let elemOfDir = []
         this.manageResource.readDir(sPath, ctx.context.user.username, ctx.context.user.password, (err, struct) => {
             struct.folders.forEach(el => {
@@ -96,7 +112,7 @@ class customFileSystem extends webdav.FileSystem
             struct.files.forEach(el => {
                 elemOfDir.push(el.title);
             });
-            //console.log(elemOfDir)
+            console.log(elemOfDir)
             callback(null, elemOfDir)
         })
     }

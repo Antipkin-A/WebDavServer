@@ -3,7 +3,9 @@ const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSln
 const {
     domen,
     const_api,
-    folder
+    folder,
+    file,
+    openedit
 } = require('./config.ts')
 
 var getStructDirectory = function(folderId, username, password, callback)
@@ -74,8 +76,81 @@ var deleteDirectory = function(folderId, username, password, callback)
     )
 }
 
+var getFileDownloadUrl = function(parentId, fileId, ctx, callback)
+{
+    request.get(
+        {
+            url: `${domen}${const_api}${file}${fileId}${openedit}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            }
+        }, (err, response, body) => {
+            if(err){
+                callback(err, null)
+            }
+
+            let streamFile = request.get(JSON.parse(body).response.document.url);
+            streamFile.end();
+            callback(null, streamFile)
+        }
+    )
+}
+
+var createFile = function(folderId, title, ctx, callback)
+{
+    request.post(
+        {
+            method: 'POST',
+            url: `${domen}${const_api}${folderId}/${file}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "title": title
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, JSON.parse(response.body).response);
+        }
+    )
+}
+
+var deleteFile = function(fileId, username, password, callback)
+{
+    request.delete(
+        {
+            method: 'DELETE',
+            url: `${domen}${const_api}${file}${fileId}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "deleteAfter": true,
+                "immediately": true
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            console.log(JSON.parse(response.body))
+            callback(null, JSON.parse(response.body).response);
+        }
+    )
+}
+
 module.exports = {
     getStructDirectory,
     createDirectory,
-    deleteDirectory
+    deleteDirectory,
+    getFileDownloadUrl,
+    createFile,
+    deleteFile
 };

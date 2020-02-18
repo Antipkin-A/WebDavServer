@@ -1,8 +1,12 @@
 const webdav = require('webdav-server').v2;
+const request = require('request');
 const {
     getStructDirectory,
     createDirectory,
-    deleteDirectory
+    deleteDirectory,
+    getFileDownloadUrl,
+    createFile,
+    deleteFile
 } = require('./requestAPI.js');
 const {pathRootDirectory} = require('./config.ts')
 
@@ -25,7 +29,7 @@ class CustomVirtualResources
         }
     }
 
-    create(path, username, password, callback){
+    create(path, ctx, username, password, callback){
 
         const {element, parentFolder} = this.parsePath(path);
 
@@ -38,32 +42,59 @@ class CustomVirtualResources
                 }
 
                 let parentId = this.struct[parentFolder].current.id;
-                
-                createDirectory(parentId, element, username, password, (err, st) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        console.log('добавляю структуру: ', st)
+                if(ctx.type.isDirectory){
+                    createDirectory(parentId, element, username, password, (err, st) => {
+                        if(err){
+                            callback(err)
+                        }
+
                         this.struct[parentFolder].folders.push(st)
                         callback(null)
-                    }
-                })
+                    })
+                }
+                else if(ctx.type.isFile){
+                    createFile(parentId, element, ctx, (err, el) => {
+                        if(err){
+                            callback(err, null);
+                        }
+
+                        this.struct[parentFolder].files.push(el);
+                        callback(null);
+                    })
+                }
             })
         }
         else{
             let parentId = this.struct[parentFolder].current.id;
             
-            createDirectory(parentId, element, username, password, (err, st) => {
-                if(err){
-                    callback(err)
-                }
-                else{
-                    console.log('добавляю структуру: ', st)
-                    this.struct[parentFolder].folders.push(st)
-                    callback(null)
-                }
-            })
+            if(ctx.type.isDirectory){
+                createDirectory(parentId, element, username, password, (err, st) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        this.struct[parentFolder].folders.push(st)
+                        callback(null)
+                    }
+                })
+            }
+            else if(ctx.type.isFile){
+                createFile(parentId, element, ctx, (err, el) => {
+                    if(err){
+                        callback(err, null);
+                    }
+    
+                    this.struct[parentFolder].files.push(el);
+
+                    getFileDownloadUrl(parentId, el.id, ctx, (err, streamFile) => {
+                        if(err){
+                            callback(err, null);
+                        }
+    
+                        callback(null, streamFile);
+                    })
+                })
+            }
         }
     }
 
@@ -77,6 +108,18 @@ class CustomVirtualResources
                         callback(err)
                     }
                     delete this.struct[parentFolder].folders.el
+                    callback(null)
+                })
+            }
+        })
+
+        this.struct[parentFolder].files.forEach((el) => {
+            if(element == el.title){
+                deleteFile(el.id, username, password, (err, res) => {
+                    if(err){
+                        callback(err)
+                    }
+                    delete this.struct[parentFolder].files.el
                     callback(null)
                 })
             }
@@ -117,14 +160,55 @@ class CustomVirtualResources
                     }
                 })
             }
-        //}
     }
 
-    getType(path, method, callback){
+    downloadFile(path, ctx, callback){
+
+        let fileisExist = false;
+        const {element, parentFolder} = this.parsePath(path);
+
+            this.struct[parentFolder].files.forEach((el) => {
+                if(element == el.title){
+                    fileisExist = true;
+                    getFileDownloadUrl(el.folderId, el.id, ctx, (err, streamFile) => {
+                        if(err){
+                            callback(err, null);
+                        }
+
+                        callback(null, streamFile);
+                    })
+                }
+            })
+            if(!fileisExist){
+                let folderId = this.struct[parentFolder].current.id;
+
+            createFile(folderId, element, ctx, (err, el) => {
+                if(err){
+                    callback(err, null);
+                }
+
+                this.struct[parentFolder].files.push(el);
+                getFileDownloadUrl(folderId, el.id, ctx, (err, streamFile) => {
+                    if(err){
+                        callback(err, null);
+                    }
+
+                    callback(null, streamFile);
+                })
+            })
+            }
+    }
+
+    getType(path, ctx, callback){
+
+        let fileisExist = false;
+        let method = ctx.context.request.method;
+
         if(path == '/'){
             callback(null, 'Directory')
         }
-        if(method == 'MKCOL'){
+        else if(method == 'MKCOL'){
+            fileisExist = true;
             callback(null, 'Directory')
         }
         else{
@@ -132,22 +216,30 @@ class CustomVirtualResources
 
             this.struct[parentFolder].files.forEach((el) => {
                 if(element == el.title){
+                    fileisExist = true;
                     callback(null, 'File')
                 }
             })
             this.struct[parentFolder].folders.forEach((el) => {
                 if(element == el.title){
+                    fileisExist = true;
                     callback(null, 'Directory')
                 }
             })
         }
+        if(!fileisExist){
+            callback(null, 'File')
+        }
     }
 
-    getSize(path, callback){
+    getSize(path, ctx, callback){
+
         const {element, parentFolder} = this.parsePath(path);
+        let fileisExist = false;
 
         this.struct[parentFolder].files.forEach((el) => {
             if(element == el.title){
+                fileisExist = true;
                 let sizeArray = el.contentLength.split(' ');
                 let dimension = sizeArray[sizeArray.length -1];
                 let size = sizeArray[sizeArray.length -2];
@@ -163,9 +255,13 @@ class CustomVirtualResources
         })
         this.struct[parentFolder].folders.forEach((el) => {
             if(element == el.title){
+                fileisExist = true;
                 callback(null, 1)
             }
         })
+        if(!fileisExist){
+            callback(null, 1)
+        }
     }
 }
 

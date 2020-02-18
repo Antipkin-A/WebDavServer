@@ -6,7 +6,6 @@ const server = new webdav.WebDAVServer({
     port: portListener,
     rootFileSystem: new FileSystem()
 });
-
 server.afterRequest((arg, next) => {
     console.log('>>', arg.request.method, arg.fullUri(), '>', arg.response.statusCode, arg.response.statusMessage);
     next();
