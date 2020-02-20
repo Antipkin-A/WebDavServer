@@ -1,11 +1,15 @@
 var request = require('request');
-const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSlnP9yv90WypKrW6joNF1jGStdN3oshPjJ5X5gpyrvqjODL3yIftyv9mIlXEhIybZTl1dklJM5Y0SMlgnEwOjp6wpUIVAQ=='
+const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSlnP9yv9Jw9Mt+2lZRHqGNYf0TOr2pZF1QPolkgA4+yU82+tRJxtSml9d0qxY8igQA1fDKbr6cDnOmoeWQVcDzT48bkCng=='
 const {
     domen,
     const_api,
     folder,
     file,
-    openedit
+    openedit,
+    insert,
+    no_createFile,
+    copy,
+    move
 } = require('./config.ts')
 
 var getStructDirectory = function(folderId, username, password, callback)
@@ -146,11 +150,141 @@ var deleteFile = function(fileId, username, password, callback)
     )
 }
 
+var rewritingFile = function(folderId, title, content, callback)
+{
+    request.post(
+        {
+            method: 'POST',
+            url: `${domen}${const_api}${folderId}${insert}${title}${no_createFile}`,
+            headers: {
+                'Content-Type': 'application/octet-stream',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            body: content
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, response)
+        }
+    )
+}
+
+var  copyFileToFolder = function(folderId, files, callback)
+{
+    request.put(
+        {
+            method: 'PUT',
+            url: `${domen}${const_api}${copy}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "destFolderId": folderId,
+                "fileIds": files,
+                "conflictResolveType": "Skip",
+                "deleteAfter": true
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, response)
+        }
+    )
+}
+
+var  copyDirToFolder = function(folderId, folders, callback)
+{
+    request.put(
+        {
+            method: 'PUT',
+            url: `${domen}${const_api}${copy}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "destFolderId": folderId,
+                "folderIds": folders,
+                "conflictResolveType": "Skip",
+                "deleteAfter": true
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, response)
+        }
+    )
+}
+
+var  moveDirToFolder = function(folderId, folders, callback)
+{
+    request.put(
+        {
+            method: 'PUT',
+            url: `${domen}${const_api}${move}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "destFolderId": folderId,
+                "folderIds": folders,
+                "conflictResolveType": "Skip",
+                "deleteAfter": true
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, response)
+        }
+    )
+}
+
+var  moveFileToFolder = function(folderId, files, callback)
+{
+    request.put(
+        {
+            method: 'PUT',
+            url: `${domen}${const_api}${move}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "destFolderId": folderId,
+                "fileIds": files,
+                "conflictResolveType": "Skip",
+                "deleteAfter": true
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, response)
+        }
+    )
+}
+
 module.exports = {
     getStructDirectory,
     createDirectory,
     deleteDirectory,
     getFileDownloadUrl,
     createFile,
-    deleteFile
+    deleteFile,
+    rewritingFile,
+    copyFileToFolder,
+    copyDirToFolder,
+    moveFileToFolder,
+    moveDirToFolder
 };

@@ -5,5 +5,9 @@ module.exports = {
     pathRootDirectory: '@my',
     folder: 'folder/',
     file: 'file/',
-    openedit: '/openedit'
+    openedit: '/openedit',
+    insert: '/insert?title=',
+    no_createFile: '&createNewIfExist=false',
+    copy: 'fileops/copy',
+    move: 'fileops/move'
   }

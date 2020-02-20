@@ -6,9 +6,15 @@ const {
     deleteDirectory,
     getFileDownloadUrl,
     createFile,
-    deleteFile
+    deleteFile,
+    rewritingFile,
+    copyDirToFolder,
+    copyFileToFolder,
+    moveDirToFolder,
+    moveFileToFolder
 } = require('./requestAPI.js');
 const {pathRootDirectory} = require('./config.ts')
+const streamWrite = require('./Writable.js')
 
 class CustomVirtualResources
 {
@@ -32,40 +38,7 @@ class CustomVirtualResources
     create(path, ctx, username, password, callback){
 
         const {element, parentFolder} = this.parsePath(path);
-
-        //If we step or copy.... to unread directory, you must read it
-        if(!this.struct[parentFolder]){
-
-            this.readDir(parentFolder, username, password, (err, struct) => {
-                if(err){
-                    console.log('Error read dir')
-                }
-
-                let parentId = this.struct[parentFolder].current.id;
-                if(ctx.type.isDirectory){
-                    createDirectory(parentId, element, username, password, (err, st) => {
-                        if(err){
-                            callback(err)
-                        }
-
-                        this.struct[parentFolder].folders.push(st)
-                        callback(null)
-                    })
-                }
-                else if(ctx.type.isFile){
-                    createFile(parentId, element, ctx, (err, el) => {
-                        if(err){
-                            callback(err, null);
-                        }
-
-                        this.struct[parentFolder].files.push(el);
-                        callback(null);
-                    })
-                }
-            })
-        }
-        else{
-            let parentId = this.struct[parentFolder].current.id;
+        let parentId = this.struct[parentFolder].current.id;
             
             if(ctx.type.isDirectory){
                 createDirectory(parentId, element, username, password, (err, st) => {
@@ -95,7 +68,6 @@ class CustomVirtualResources
                     })
                 })
             }
-        }
     }
 
     delete(path, username, password, callback){
@@ -144,21 +116,26 @@ class CustomVirtualResources
             else{
                 const {element, parentFolder} = this.parsePath(path);
 
-                this.struct[parentFolder].folders.forEach((el) => {
-                    if(element == el.title){
-                        let folderId = el.id;
-                        getStructDirectory(folderId, username, password, (err, st) => {
-                            if(err){
-                                callback(err, null)
-                            }
-                            this.struct[path] = {};
-                            this.struct[path].folders = st.folders;
-                            this.struct[path].files = st.files;
-                            this.struct[path].current = st.current;
-                            callback(null, this.struct[path])
-                        })
-                    }
-                })
+                if(!this.struct[parentFolder]){
+                    this.readDir(parentFolder, null, null, callback)
+                }
+                else{
+                    this.struct[parentFolder].folders.forEach((el) => {
+                        if(element == el.title){
+                            let folderId = el.id;
+                            getStructDirectory(folderId, username, password, (err, st) => {
+                                if(err){
+                                    callback(err, null)
+                                }
+                                this.struct[path] = {};
+                                this.struct[path].folders = st.folders;
+                                this.struct[path].files = st.files;
+                                this.struct[path].current = st.current;
+                                callback(null, this.struct[path])
+                            })
+                        }
+                    })
+                }
             }
     }
 
@@ -197,6 +174,152 @@ class CustomVirtualResources
                 })
             })
             }
+    }
+
+    writeFile(path, ctx, callback){
+
+        const {element, parentFolder} = this.parsePath(path);
+        let folderId = this.struct[parentFolder].current.id;
+
+        const content = [];
+        const stream = new streamWrite(content);
+
+        stream.on('finish', () => {
+            this.struct[parentFolder].files.forEach((el) => {
+                if(element == el.title){
+                    rewritingFile(folderId, el.title, content, (err, res) => {
+                        if(err){
+                            callback(err, null)
+                        }
+                    })
+                }
+            })
+        })
+        callback(null, stream)
+    }
+
+    copy(pathFrom, pathTo, ctx, callback){
+
+        let {element, parentFolder} = this.parsePath(pathFrom);
+
+        if(!this.struct[pathTo]){
+                    this.readDir(pathTo, null, null, (err, st) => {
+                        if(err){
+                            console.log('Error read dir')
+                        }
+                        if(this.struct[pathTo]){
+                            const folderId = this.struct[pathTo].current.id;
+                            this.struct[parentFolder].folders.forEach((el) => {
+                            if(element == el.title){
+                                copyDirToFolder(folderId, el.id, (err, res) => {
+                                    if(err){
+                                        callback(err, null)
+                                    }
+                                    callback(null, true)
+                                })
+                            }
+                            })
+                            this.struct[parentFolder].files.forEach((el) => {
+                                if(element == el.title){
+                                    copyFileToFolder(folderId, el.id, (err, res) => {
+                                        if(err){
+                                            callback(err, null)
+                                        }
+                                        callback(null, true)
+                                    })
+                                }
+                                })
+                        }
+                        else{
+                            this.copy(pathFrom, pathTo, ctx, callback)
+                        }
+                    })
+        }
+        else{
+            const folderId = this.struct[pathTo].current.id;
+            this.struct[parentFolder].folders.forEach((el) => {
+                if(element == el.title){
+                    copyDirToFolder(folderId, el.id, (err, res) => {
+                        if(err){
+                            callback(err, null)
+                        }
+                        callback(null, true)
+                    })
+                }
+            })
+            this.struct[parentFolder].files.forEach((el) => {
+                if(element == el.title){
+                    copyFileToFolder(folderId, el.id, (err, res) => {
+                        if(err){
+                            callback(err, null)
+                        }
+                        callback(null, true)
+                    })
+                }
+            })
+        }
+    }
+
+    move(pathFrom, pathTo, ctx, callback){
+
+        let {element, parentFolder} = this.parsePath(pathFrom);
+
+        if(!this.struct[pathTo]){
+                    this.readDir(pathTo, null, null, (err, st) => {
+                        if(err){
+                            console.log('Error read dir')
+                        }
+                        if(this.struct[pathTo]){
+                            const folderId = this.struct[pathTo].current.id;
+                            this.struct[parentFolder].folders.forEach((el) => {
+                            if(element == el.title){
+                                moveDirToFolder(folderId, el.id, (err, res) => {
+                                    if(err){
+                                        callback(err, null)
+                                    }
+                                    callback(null, true)
+                                })
+                            }
+                            })
+                            this.struct[parentFolder].files.forEach((el) => {
+                                if(element == el.title){
+                                    moveFileToFolder(folderId, el.id, (err, res) => {
+                                        if(err){
+                                            callback(err, null)
+                                        }
+                                        callback(null, true)
+                                    })
+                                }
+                                })
+                        }
+                        else{
+                            this.copy(pathFrom, pathTo, ctx, callback)
+                        }
+                    })
+        }
+        else{
+            const folderId = this.struct[pathTo].current.id;
+            this.struct[parentFolder].folders.forEach((el) => {
+                if(element == el.title){
+                    moveDirToFolder(folderId, el.id, (err, res) => {
+                        if(err){
+                            callback(err, null)
+                        }
+                        callback(null, true)
+                    })
+                }
+            })
+            this.struct[parentFolder].files.forEach((el) => {
+                if(element == el.title){
+                    moveFileToFolder(folderId, el.id, (err, res) => {
+                        if(err){
+                            callback(err, null)
+                        }
+                        callback(null, true)
+                    })
+                }
+            })
+        }
     }
 
     getType(path, ctx, callback){
@@ -244,6 +367,9 @@ class CustomVirtualResources
                 let dimension = sizeArray[sizeArray.length -1];
                 let size = sizeArray[sizeArray.length -2];
                 switch(dimension){
+                    case 'bytes':
+                        callback(null, Number(size))
+                        break
                     case 'KB':
                         callback(null, Number(size) * 1000)
                         break
@@ -261,6 +387,35 @@ class CustomVirtualResources
         })
         if(!fileisExist){
             callback(null, 1)
+        }
+    }
+
+    getlastModifiedDate(path, ctx, callback){
+
+        if(path != '/'){
+            const {element, parentFolder} = this.parsePath(path);
+
+            this.struct[parentFolder].files.forEach((el) => {
+            if(element == el.title){
+                let updatedArray = el.updated.split('.');
+                updatedArray = updatedArray[0].split('T')
+                let date = updatedArray[0].split('-');
+                let time = updatedArray[1].split(':');
+                callback(null, new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2]))
+            }
+            })
+            this.struct[parentFolder].folders.forEach((el) => {
+            if(element == el.title){
+                let updatedArray = el.updated.split('.');
+                updatedArray = updatedArray[0].split('T')
+                let date = updatedArray[0].split('-');
+                let time = updatedArray[1].split(':');
+                callback(null, new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2]))
+            }
+            })
+        }
+        else{
+            callback(null, new Date(0, 0, 0, 0, 0, 0))
         }
     }
 }
