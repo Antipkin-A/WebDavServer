@@ -23,12 +23,13 @@ class customFileSystem extends webdav.FileSystem
         callback(null, this.props)
     }
 
-    /*_rename(pathFrom, newName, ctx, callback){
+    _rename(pathFrom, newName, ctx, callback){
         console.log(pathFrom, newName, '>>>>>>>>rename>>>>>>>>>')
-    }*/
+    }
 
     _create(path, ctx, callback){
         const sPath = path.toString();
+        console.log('CREATE')
 
         this.manageResource.create(sPath, ctx, ctx.context.user.username, ctx.context.user.password, (err) => {
             if(err){
@@ -83,6 +84,9 @@ class customFileSystem extends webdav.FileSystem
         const sPath = path.toString();
 
         this.manageResource.getSize(sPath, ctx, (err, size) => {
+            if(err){
+                callback(err, null)
+            }
             callback(null, size)
         })
     }
@@ -108,28 +112,24 @@ class customFileSystem extends webdav.FileSystem
 
     _type(path, ctx, callback) {
         const sPath = path.toString();
-        
 
-        if(sPath == '/'){
-            callback(null, webdav.ResourceType.Directory)
-        }
-        else{
-            //console.log('>>Call method _type<<', '>>method: ' + ctx.context.request.method + ' >>url: ' + ctx.context.request.url)
-            this.manageResource.getType(sPath, ctx, (err, type) => {
-                if(type == 'Directory'){
-                    callback(null, webdav.ResourceType.Directory)
-                }
-                else{
-                    callback(null, webdav.ResourceType.File)
-                }
-            })
-        }
+        this.manageResource.getType(sPath, ctx, (err, type) => {
+            if(err){
+                callback(err, null)
+            }
+            else{
+                callback(null, type)
+            }
+        })
     }
 
     _lastModifiedDate(path, ctx, callback){
         const sPath = path.toString();
 
         this.manageResource.getlastModifiedDate(sPath, ctx, (err, date) => {
+            if(err){
+                callback(err, null)
+            }
             callback(null, date)
         })
     }
@@ -138,6 +138,9 @@ class customFileSystem extends webdav.FileSystem
         const sPath = path.toString();
         let elemOfDir = []
         this.manageResource.readDir(sPath, ctx.context.user.username, ctx.context.user.password, (err, struct) => {
+            if(err){
+                callback(err, null)
+            }
             struct.folders.forEach(el => {
                 elemOfDir.push(el.title);
             });
