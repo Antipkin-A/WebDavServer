@@ -6,12 +6,15 @@ const {
     deleteDirectory,
     getFileDownloadUrl,
     createFile,
+    createFiletxt,
     deleteFile,
     rewritingFile,
     copyDirToFolder,
     copyFileToFolder,
     moveDirToFolder,
-    moveFileToFolder
+    moveFileToFolder,
+    renameFolder,
+    renameFile
 } = require('./requestAPI.js');
 const {pathRootDirectory} = require('./config.ts')
 const streamWrite = require('./Writable.js')
@@ -46,6 +49,40 @@ class CustomVirtualResources
         }
     }
 
+    checkRename(elementFrom, elementTo, parentFolderFrom, parentFolderTo){
+
+        let elementFromIsExist = false;
+        let elementToIsExist = false;
+        this.struct[parentFolderFrom].files.forEach((el) => {
+            if(elementFrom == el.title){
+                elementFromIsExist = true;
+            }
+        })
+        this.struct[parentFolderFrom].folders.forEach((el) => {
+            if(elementFrom == el.title){
+                elementFromIsExist = true;
+            }
+        })
+        this.struct[parentFolderTo].files.forEach((el) => {
+            if(elementTo == el.title){
+                elementToIsExist = true;
+            }
+        })
+        this.struct[parentFolderTo].folders.forEach((el) => {
+            if(elementTo == el.title){
+                elementToIsExist = true;
+            }
+        })
+        if(elementFromIsExist && !elementToIsExist && (parentFolderFrom == parentFolderTo)){
+            return{
+                isRename: true
+            }
+         }
+        else return{
+            isRename: false
+        }
+    }
+
     create(path, ctx, username, password, callback){
 
         const {element, parentFolder} = this.parsePath(path);
@@ -63,11 +100,26 @@ class CustomVirtualResources
                 })
             }
             else if(ctx.type.isFile){
-                createFile(parentId, element, ctx, (err, el) => {
+                /*createFile(parentId, element, ctx, (err, el) => {
                     if(err){
                         callback(err, null);
                     }
+                    console.log(el)
+                    this.struct[parentFolder].files.push(el);
+
+                    getFileDownloadUrl(parentId, el.id, ctx, (err, streamFile) => {
+                        if(err){
+                            callback(err, null);
+                        }
     
+                        callback(null, streamFile);
+                    })
+                })*/
+                createFiletxt(parentId, element, ctx, (err, el) => {
+                    if(err){
+                        callback(err, null);
+                    }
+                    console.log(el)
                     this.struct[parentFolder].files.push(el);
 
                     getFileDownloadUrl(parentId, el.id, ctx, (err, streamFile) => {
@@ -271,30 +323,65 @@ class CustomVirtualResources
         }
     }
 
+    rename(path, newName, ctx, callback){
+
+        let {element, parentFolder} = this.parsePath(path);
+
+        this.struct[parentFolder].folders.forEach((el) => {
+            if(element == el.title){
+                renameFolder(el.id, newName, (err, rename) => {
+                    if(err){
+                        callback(err, null)
+                    }
+                    callback(null, true)
+                })
+            }
+        })
+        this.struct[parentFolder].files.forEach((el) => {
+            if(element == el.title){
+                renameFile(el.id, newName, (err, rename) => {
+                    if(err){
+                        callback(err, null)
+                    }
+                    console.log(rename)
+                    callback(null, true)
+                })
+            }
+        })
+
+    }
+
     move(pathFrom, pathTo, ctx, callback){
 
-        let {element, parentFolder} = this.parsePath(pathFrom);
-        
-        if(!this.struct[pathTo]){
-            this.readDir(pathTo, null, null, (err, st) => {
-                if(err){
-                    console.log('Error read dir')
-                }
-                if(this.struct[pathTo]){
-                    const folderId = this.struct[pathTo].current.id;
-                    this.struct[parentFolder].folders.forEach((el) => {
-                    if(element == el.title){
-                        moveDirToFolder(folderId, el.id, (err, res) => {
-                            if(err){
-                                callback(err, null)
-                            }
-                            callback(null, true)
-                        })
+        let {element: elementFrom, parentFolder: parentFolderFrom} = this.parsePath(pathFrom);
+        let {element: elementTo, parentFolder: parentFolderTo} = this.parsePath(pathTo);
+
+        if(parentFolderFrom == parentFolderTo){
+            var {isRename} = this.checkRename(elementFrom, elementTo, parentFolderFrom, parentFolderTo)
+        }
+        else{
+            var isRename = false;
+        }
+
+        if(isRename){
+           this.rename(pathFrom, elementTo, ctx, (err, rename) => {
+               if(err){
+                   callback(err, null)
+               }
+               callback(null, true)
+           })
+        }
+        else{
+            if(!this.struct[pathTo]){
+                this.readDir(pathTo, null, null, (err, st) => {
+                    if(err){
+                        console.log('Error read dir')
                     }
-                    })
-                    this.struct[parentFolder].files.forEach((el) => {
-                        if(element == el.title){
-                            moveFileToFolder(folderId, el.id, (err, res) => {
+                    if(this.struct[pathTo]){
+                        const folderId = this.struct[pathTo].current.id;
+                        this.struct[parentFolderFrom].folders.forEach((el) => {
+                        if(elementFrom == el.title){
+                            moveDirToFolder(folderId, el.id, (err, res) => {
                                 if(err){
                                     callback(err, null)
                                 }
@@ -302,34 +389,45 @@ class CustomVirtualResources
                             })
                         }
                         })
-                }
-                else{
-                    this.copy(pathFrom, pathTo, ctx, callback)
-                }
-            })
-        }
-        else{
-            const folderId = this.struct[pathTo].current.id;
-            this.struct[parentFolder].folders.forEach((el) => {
-                if(element == el.title){
-                    moveDirToFolder(folderId, el.id, (err, res) => {
-                        if(err){
-                            callback(err, null)
-                        }
-                        callback(null, true)
-                    })
-                }
-            })
-            this.struct[parentFolder].files.forEach((el) => {
-                if(element == el.title){
-                    moveFileToFolder(folderId, el.id, (err, res) => {
-                        if(err){
-                            callback(err, null)
-                        }
-                        callback(null, true)
-                    })
-                }
-            })
+                        this.struct[parentFolderFrom].files.forEach((el) => {
+                            if(elementFrom == el.title){
+                                moveFileToFolder(folderId, el.id, (err, res) => {
+                                    if(err){
+                                        callback(err, null)
+                                    }
+                                    callback(null, true)
+                                })
+                            }
+                            })
+                    }
+                    else{
+                        this.copy(pathFrom, pathTo, ctx, callback)
+                    }
+                })
+            }
+            else{
+                const folderId = this.struct[pathTo].current.id;
+                this.struct[parentFolderFrom].folders.forEach((el) => {
+                    if(elementFrom == el.title){
+                        moveDirToFolder(folderId, el.id, (err, res) => {
+                            if(err){
+                                callback(err, null)
+                            }
+                            callback(null, true)
+                        })
+                    }
+                })
+                this.struct[parentFolderFrom].files.forEach((el) => {
+                    if(elementFrom == el.title){
+                        moveFileToFolder(folderId, el.id, (err, res) => {
+                            if(err){
+                                callback(err, null)
+                            }
+                            callback(null, true)
+                        })
+                    }
+                })
+            }
         }
     }
 

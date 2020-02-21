@@ -9,7 +9,8 @@ const {
     insert,
     no_createFile,
     copy,
-    move
+    move,
+    text
 } = require('./config.ts')
 
 var getStructDirectory = function(folderId, username, password, callback)
@@ -115,6 +116,30 @@ var createFile = function(folderId, title, ctx, callback)
             },
             form: {
                 "title": title
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, JSON.parse(response.body).response);
+        }
+    )
+}
+
+var createFiletxt = function(folderId, title, ctx, callback)
+{
+    request.post(
+        {
+            method: 'POST',
+            url: `${domen}${const_api}${folderId}${text}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "title": title,
+                "content": ' '
             }
         }, (err, response) => {
             if(err){
@@ -275,6 +300,52 @@ var  moveFileToFolder = function(folderId, files, callback)
     )
 }
 
+var renameFolder = function(folderId, newName, callback)
+{
+    request.put(
+        {
+            method: 'PUT',
+            url: `${domen}${const_api}${folder}${folderId}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "title": newName
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, response)
+        }
+    )
+}
+
+var renameFile = function(fileId, newName, callback)
+{
+    request.put(
+        {
+            method: 'PUT',
+            url: `${domen}${const_api}${file}${fileId}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': accessToken
+            },
+            form: {
+                "title": newName
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err, null)
+            }
+            callback(null, response)
+        }
+    )
+}
+
 module.exports = {
     getStructDirectory,
     createDirectory,
@@ -286,5 +357,8 @@ module.exports = {
     copyFileToFolder,
     copyDirToFolder,
     moveFileToFolder,
-    moveDirToFolder
+    moveDirToFolder,
+    renameFolder,
+    renameFile,
+    createFiletxt
 };

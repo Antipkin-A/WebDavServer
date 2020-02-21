@@ -9,5 +9,6 @@ module.exports = {
     insert: '/insert?title=',
     no_createFile: '&createNewIfExist=false',
     copy: 'fileops/copy',
-    move: 'fileops/move'
+    move: 'fileops/move',
+    text: '/text'
   }

@@ -23,13 +23,12 @@ class customFileSystem extends webdav.FileSystem
         callback(null, this.props)
     }
 
-    _rename(pathFrom, newName, ctx, callback){
+    /*_rename(pathFrom, newName, ctx, callback){
         console.log(pathFrom, newName, '>>>>>>>>rename>>>>>>>>>')
-    }
+    }*/
 
     _create(path, ctx, callback){
         const sPath = path.toString();
-        console.log('CREATE')
 
         this.manageResource.create(sPath, ctx, ctx.context.user.username, ctx.context.user.password, (err) => {
             if(err){
