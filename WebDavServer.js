@@ -1,13 +1,18 @@
 const webdav = require('webdav-server').v2;
 const FileSystem = require('./customFileSystem');
+const customUserManager = require('./customUserManager');
 const {portListener} = require('./config.ts')
+
+const userManager = new customUserManager();
 
 const server = new webdav.WebDAVServer({
     port: portListener,
+    requireAuthentification: true,
+    httpAuthentication: new webdav.HTTPBasicAuthentication(userManager),
     rootFileSystem: new FileSystem()
 });
 server.afterRequest((arg, next) => {
-    console.log('>>', arg.request.method, arg.fullUri(), '>', arg.response.statusCode, arg.response.statusMessage);
+    console.log('>>', arg.user.username, arg.request.method, arg.fullUri(), '>', arg.response.statusCode, arg.response.statusMessage);
     next();
 })
 

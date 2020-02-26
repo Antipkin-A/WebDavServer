@@ -1,9 +1,6 @@
 const webdav = require('webdav-server').v2;
 const request = require('request');
 const VirtualResources = require('./customVirtualResources');
-//const rootUrl = `http://127.0.0.1:80/api/2.0/files/@my`
-//let folderIdUrl = `http://127.0.0.1:80/api/2.0/files/${folderId}`;
-const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSlnP9yv9Jw9Mt+2lZRHqGNYf0TOr2pZF1QPolkgA4+yU82+tRJzXs9qjNU7zzK52BG6XBj6ITWx1QicXoNXoI5/mZo6hCg=='
 
 
 class customFileSystem extends webdav.FileSystem
@@ -15,22 +12,27 @@ class customFileSystem extends webdav.FileSystem
         this.manageResource = new VirtualResources();
     }
 
-    _lockManager(path, ctx, callback) {
+    _lockManager(path, ctx, callback){
         callback(null, this.locks)
     }
 
-    _propertyManager(path, ctx, callback) {
+    _propertyManager(path, ctx, callback){
         callback(null, this.props)
     }
 
-    /*_rename(pathFrom, newName, ctx, callback){
-        console.log(pathFrom, newName, '>>>>>>>>rename>>>>>>>>>')
-    }*/
+    _fastExistCheck(ctx, path, callback){
+
+        const sPath = path.toString();
+
+        this.manageResource.fastExistCheck(sPath, ctx, (exist) => {
+            callback(exist)  
+        })
+    }
 
     _create(path, ctx, callback){
         const sPath = path.toString();
 
-        this.manageResource.create(sPath, ctx, ctx.context.user.username, ctx.context.user.password, (err) => {
+        this.manageResource.create(sPath, ctx, (err) => {
             if(err){
                 callback(webdav.Errors.IntermediateResourceMissing)
             }
@@ -41,7 +43,7 @@ class customFileSystem extends webdav.FileSystem
     _delete(path, ctx, callback){
         const sPath = path.toString();
 
-        this.manageResource.delete(sPath, ctx.context.user.username, ctx.context.user.password, (err) => {
+        this.manageResource.delete(sPath, ctx, (err) => {
             if(err){
                 callback(webdav.Errors.IntermediateResourceMissing)
             }
@@ -136,7 +138,7 @@ class customFileSystem extends webdav.FileSystem
     _readDir(path, ctx, callback){
         const sPath = path.toString();
         let elemOfDir = []
-        this.manageResource.readDir(sPath, ctx.context.user.username, ctx.context.user.password, (err, struct) => {
+        this.manageResource.readDir(sPath, ctx, (err, struct) => {
             if(err){
                 callback(err, null)
             }

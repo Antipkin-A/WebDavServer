@@ -1,5 +1,5 @@
 var request = require('request');
-const accessToken = '8AmgZR8BpZmrWqDINk/M7nvjDNuvI2uG07AMwhGg/IUuAr0+dytOxTrTSlnP9yv9Jw9Mt+2lZRHqGNYf0TOr2pZF1QPolkgA4+yU82+tRJxtSml9d0qxY8igQA1fDKbr6cDnOmoeWQVcDzT48bkCng=='
+
 const {
     domen,
     const_api,
@@ -10,18 +10,48 @@ const {
     no_createFile,
     copy,
     move,
-    text
+    text,
+    const_files,
+    const_auth
 } = require('./config.ts')
 
-var getStructDirectory = function(folderId, username, password, callback)
+var requestAuth = function(username, password, callback)
+{
+    request.post(
+        {
+            method: 'POST',
+            url: `${domen}${const_api}${const_auth}`,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            form: {
+                "userName": username,
+                "password": password
+            }
+        }, (err, response) => {
+            if(err){
+                callback(err)
+            }
+            if(JSON.parse(response.body).statusCode !== 201){
+                callback(new Error('authentication failed'), null)
+            }
+            else{
+                callback(null, JSON.parse(response.body).response.token);
+            }
+        }
+    )
+}
+
+var getStructDirectory = function(folderId, token, callback)
 {
     request.get(
         {
-            url: `${domen}${const_api}${folderId}`,
+            url: `${domen}${const_api}${const_files}${folderId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             }
         }, (err, response, body) => {
             if(err){
@@ -32,16 +62,16 @@ var getStructDirectory = function(folderId, username, password, callback)
     )
 }
 
-var createDirectory = function(parentId, title, username, password, callback)
+var createDirectory = function(parentId, title, token, callback)
 {
     request.post(
         {
             method: 'POST',
-            url: `${domen}${const_api}${folder}${parentId}`,
+            url: `${domen}${const_api}${const_files}${folder}${parentId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "title": title
@@ -50,22 +80,21 @@ var createDirectory = function(parentId, title, username, password, callback)
             if(err){
                 callback(err, null)
             }
-            console.log(JSON.parse(response.body))
             callback(null, JSON.parse(response.body).response);
         }
     )
 }
 
-var deleteDirectory = function(folderId, username, password, callback)
+var deleteDirectory = function(folderId, token, callback)
 {
     request.delete(
         {
             method: 'DELETE',
-            url: `${domen}${const_api}${folder}${folderId}`,
+            url: `${domen}${const_api}${const_files}${folder}${folderId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "deleteAfter": true,
@@ -75,21 +104,20 @@ var deleteDirectory = function(folderId, username, password, callback)
             if(err){
                 callback(err, null)
             }
-            console.log(JSON.parse(response.body))
             callback(null, JSON.parse(response.body).response);
         }
     )
 }
 
-var getFileDownloadUrl = function(parentId, fileId, ctx, callback)
+var getFileDownloadUrl = function(parentId, fileId, token, callback)
 {
     request.get(
         {
-            url: `${domen}${const_api}${file}${fileId}${openedit}`,
+            url: `${domen}${const_api}${const_files}${file}${fileId}${openedit}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             }
         }, (err, response, body) => {
             if(err){
@@ -103,16 +131,16 @@ var getFileDownloadUrl = function(parentId, fileId, ctx, callback)
     )
 }
 
-var createFile = function(folderId, title, ctx, callback)
+var createFile = function(folderId, title, token, callback)
 {
     request.post(
         {
             method: 'POST',
-            url: `${domen}${const_api}${folderId}/${file}`,
+            url: `${domen}${const_api}${const_files}${folderId}/${file}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "title": title
@@ -126,16 +154,16 @@ var createFile = function(folderId, title, ctx, callback)
     )
 }
 
-var createFiletxt = function(folderId, title, ctx, callback)
+var createFiletxt = function(folderId, title, token, callback)
 {
     request.post(
         {
             method: 'POST',
-            url: `${domen}${const_api}${folderId}${text}`,
+            url: `${domen}${const_api}${const_files}${folderId}${text}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "title": title,
@@ -150,16 +178,16 @@ var createFiletxt = function(folderId, title, ctx, callback)
     )
 }
 
-var deleteFile = function(fileId, username, password, callback)
+var deleteFile = function(fileId, token, callback)
 {
     request.delete(
         {
             method: 'DELETE',
-            url: `${domen}${const_api}${file}${fileId}`,
+            url: `${domen}${const_api}${const_files}${file}${fileId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "deleteAfter": true,
@@ -169,22 +197,21 @@ var deleteFile = function(fileId, username, password, callback)
             if(err){
                 callback(err, null)
             }
-            console.log(JSON.parse(response.body))
             callback(null, JSON.parse(response.body).response);
         }
     )
 }
 
-var rewritingFile = function(folderId, title, content, callback)
+var rewritingFile = function(folderId, title, content, token, callback)
 {
     request.post(
         {
             method: 'POST',
-            url: `${domen}${const_api}${folderId}${insert}${title}${no_createFile}`,
+            url: `${domen}${const_api}${const_files}${folderId}${insert}${title}${no_createFile}`,
             headers: {
                 'Content-Type': 'application/octet-stream',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             body: content
         }, (err, response) => {
@@ -196,16 +223,16 @@ var rewritingFile = function(folderId, title, content, callback)
     )
 }
 
-var  copyFileToFolder = function(folderId, files, callback)
+var  copyFileToFolder = function(folderId, files, token, callback)
 {
     request.put(
         {
             method: 'PUT',
-            url: `${domen}${const_api}${copy}`,
+            url: `${domen}${const_api}${const_files}${copy}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "destFolderId": folderId,
@@ -222,16 +249,16 @@ var  copyFileToFolder = function(folderId, files, callback)
     )
 }
 
-var  copyDirToFolder = function(folderId, folders, callback)
+var  copyDirToFolder = function(folderId, folders, token, callback)
 {
     request.put(
         {
             method: 'PUT',
-            url: `${domen}${const_api}${copy}`,
+            url: `${domen}${const_api}${const_files}${copy}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "destFolderId": folderId,
@@ -248,16 +275,16 @@ var  copyDirToFolder = function(folderId, folders, callback)
     )
 }
 
-var  moveDirToFolder = function(folderId, folders, callback)
+var  moveDirToFolder = function(folderId, folders, token, callback)
 {
     request.put(
         {
             method: 'PUT',
-            url: `${domen}${const_api}${move}`,
+            url: `${domen}${const_api}${const_files}${move}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "destFolderId": folderId,
@@ -274,16 +301,16 @@ var  moveDirToFolder = function(folderId, folders, callback)
     )
 }
 
-var  moveFileToFolder = function(folderId, files, callback)
+var  moveFileToFolder = function(folderId, files, token, callback)
 {
     request.put(
         {
             method: 'PUT',
-            url: `${domen}${const_api}${move}`,
+            url: `${domen}${const_api}${const_files}${move}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "destFolderId": folderId,
@@ -300,16 +327,16 @@ var  moveFileToFolder = function(folderId, files, callback)
     )
 }
 
-var renameFolder = function(folderId, newName, callback)
+var renameFolder = function(folderId, newName, token, callback)
 {
     request.put(
         {
             method: 'PUT',
-            url: `${domen}${const_api}${folder}${folderId}`,
+            url: `${domen}${const_api}${const_files}${folder}${folderId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "title": newName
@@ -323,16 +350,16 @@ var renameFolder = function(folderId, newName, callback)
     )
 }
 
-var renameFile = function(fileId, newName, callback)
+var renameFile = function(fileId, newName, token, callback)
 {
     request.put(
         {
             method: 'PUT',
-            url: `${domen}${const_api}${file}${fileId}`,
+            url: `${domen}${const_api}${const_files}${file}${fileId}`,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'Authorization': accessToken
+                'Authorization': token
             },
             form: {
                 "title": newName
@@ -360,5 +387,6 @@ module.exports = {
     moveDirToFolder,
     renameFolder,
     renameFile,
-    createFiletxt
+    createFiletxt,
+    requestAuth
 };
