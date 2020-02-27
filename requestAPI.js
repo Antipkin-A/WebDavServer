@@ -121,12 +121,16 @@ var getFileDownloadUrl = function(parentId, fileId, token, callback)
             }
         }, (err, response, body) => {
             if(err){
-                callback(err, null)
+                callback(err, null);
             }
-
-            let streamFile = request.get(JSON.parse(body).response.document.url);
-            streamFile.end();
-            callback(null, streamFile)
+            else if(JSON.parse(body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(body).error.message}`), null);
+            }
+            else{
+                let streamFile = request.get(JSON.parse(body).response.document.url);
+                streamFile.end();
+                callback(null, streamFile);
+            }
         }
     )
 }
@@ -204,10 +208,11 @@ var deleteFile = function(fileId, token, callback)
 
 var rewritingFile = function(folderId, title, content, token, callback)
 {
+    const encode_title = encodeURIComponent(`${title}`);
     request.post(
         {
             method: 'POST',
-            url: `${domen}${const_api}${const_files}${folderId}${insert}${title}${no_createFile}`,
+            url: `${domen}${const_api}${const_files}${folderId}${insert}${encode_title}${no_createFile}`,
             headers: {
                 'Content-Type': 'application/octet-stream',
                 'Accept': 'application/json',

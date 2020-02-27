@@ -99,7 +99,9 @@ class customFileSystem extends webdav.FileSystem
             if(err){
                 callback(err, null)
             }
-            callback(null, stream)
+            else{
+                callback(null, stream)
+            }
         })
     }
 
@@ -107,7 +109,12 @@ class customFileSystem extends webdav.FileSystem
         const sPath = path.toString();
 
         this.manageResource.downloadFile(sPath, ctx, (err, file) => {
-            callback(null, file)
+            if(err){
+                callback(err, null)
+            }
+            else{
+                callback(null, file)
+            }
         })
     }
 

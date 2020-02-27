@@ -255,39 +255,20 @@ class CustomVirtualResources
     downloadFile(path, ctx, callback){
 
         const user = ctx.context.user;
-        let fileisExist = false;
         const {element, parentFolder} = this.parsePath(path);
 
             this.struct[user.username][parentFolder].files.forEach((el) => {
                 if(element == el.title){
-                    fileisExist = true;
                     getFileDownloadUrl(el.folderId, el.id, user.token, (err, streamFile) => {
                         if(err){
                             callback(err, null);
                         }
-
-                        callback(null, streamFile);
+                        else{
+                            callback(null, streamFile);
+                        }
                     })
                 }
             })
-            if(!fileisExist){
-                let folderId = this.struct[user.username][parentFolder].current.id;
-
-            createFile(folderId, element, user.token, (err, el) => {
-                if(err){
-                    callback(err, null);
-                }
-
-                this.struct[user.username][parentFolder].files.push(el);
-                getFileDownloadUrl(folderId, el.id, user.token, (err, streamFile) => {
-                    if(err){
-                        callback(err, null);
-                    }
-
-                    callback(null, streamFile);
-                })
-            })
-            }
     }
 
     writeFile(path, ctx, callback){
