@@ -96,12 +96,12 @@ class customFileSystem extends webdav.FileSystem
     _openWriteStream(path, ctx, callback){
         const sPath = path.toString();
 
-        this.manageResource.writeFile(sPath, ctx, (err, streamFile) => {
+        this.manageResource.writeFile(sPath, ctx, (err, streamWrite) => {
             if(err){
                 callback(err, null)
             }
             else{
-                callback(null, streamFile)
+                callback(null, streamWrite)
             }
         })
     }
@@ -109,12 +109,12 @@ class customFileSystem extends webdav.FileSystem
     _openReadStream(path, ctx, callback){
         const sPath = path.toString();
 
-        this.manageResource.downloadFile(sPath, ctx, (err, streamFile) => {
+        this.manageResource.downloadFile(sPath, ctx, (err, streamRead) => {
             if(err){
                 callback(err, null)
             }
             else{
-                callback(null, streamFile)
+                callback(null, streamRead)
             }
         })
     }

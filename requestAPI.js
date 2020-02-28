@@ -112,13 +112,13 @@ var deleteDirectory = function(folderId, token, callback)
             }
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(body).error.message}`), null);
+                callback(new Error(`${JSON.parse(body).error.message}`));
             }
             else{
-                callback(null, JSON.parse(response.body).response);
+                callback();
             }
         }
     )
@@ -224,13 +224,13 @@ var deleteFile = function(fileId, token, callback)
             }
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(body).error.message}`), null);
+                callback(new Error(`${JSON.parse(body).error.message}`));
             }
             else{
-                callback(null, JSON.parse(response.body).response);
+                callback();
             }
         }
     )
@@ -251,13 +251,13 @@ var rewritingFile = function(folderId, title, content, token, callback)
             body: content
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 201){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+                callback(new Error(`${JSON.parse(response.body).error.message}`));
             }
             else{
-                callback(null, response)
+                callback()
             }
         }
     )
@@ -282,13 +282,13 @@ var  copyFileToFolder = function(folderId, files, token, callback)
             }
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+                callback(new Error(`${JSON.parse(response.body).error.message}`));
             }
             else{
-                callback(null, response)
+                callback()
             }
         }
     )
@@ -313,13 +313,13 @@ var  copyDirToFolder = function(folderId, folders, token, callback)
             }
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+                callback(new Error(`${JSON.parse(response.body).error.message}`));
             }
             else{
-                callback(null, response)
+                callback()
             }
         }
     )
@@ -344,13 +344,13 @@ var  moveDirToFolder = function(folderId, folders, token, callback)
             }
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+                callback(new Error(`${JSON.parse(response.body).error.message}`));
             }
             else{
-                callback(null, response)
+                callback()
             }
         }
     )
@@ -375,13 +375,13 @@ var  moveFileToFolder = function(folderId, files, token, callback)
             }
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+                callback(new Error(`${JSON.parse(response.body).error.message}`));
             }
             else{
-                callback(null, response)
+                callback()
             }
         }
     )
@@ -403,13 +403,13 @@ var renameFolder = function(folderId, newName, token, callback)
             }
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+                callback(new Error(`${JSON.parse(response.body).error.message}`));
             }
             else{
-                callback(null, response)
+                callback()
             }
         }
     )
@@ -431,13 +431,13 @@ var renameFile = function(fileId, newName, token, callback)
             }
         }, (err, response) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
             else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+                callback(new Error(`${JSON.parse(response.body).error.message}`));
             }
             else{
-                callback(null, response)
+                callback()
             }
         }
     )

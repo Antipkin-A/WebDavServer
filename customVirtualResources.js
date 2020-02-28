@@ -93,14 +93,8 @@ class CustomVirtualResources
                 elementToIsExist = true;
             }
         })
-        if(elementFromIsExist && !elementToIsExist && (parentFolderFrom == parentFolderTo)){
-            return{
-                isRename: true
-            }
-         }
-        else return{
-            isRename: false
-        }
+        const isRename = (elementFromIsExist && !elementToIsExist && (parentFolderFrom == parentFolderTo)) ? true : false;
+        return isRename
     }
 
     fastExistCheck(path, ctx, callback){
@@ -141,32 +135,32 @@ class CustomVirtualResources
         let parentId = this.struct[user.username][parentFolder].current.id;
             
             if(ctx.type.isDirectory){
-                createDirectory(parentId, element, user.token, (err, st) => {
+                createDirectory(parentId, element, user.token, (err, createdObj) => {
                     if(err){
                         callback(err)
                     }
                     else{
-                        this.struct[user.username][parentFolder].folders.push(st)
+                        this.struct[user.username][parentFolder].folders.push(createdObj)
                         callback()
                     }
                 })
             }
             else if(ctx.type.isFile){
-                /*createFile(parentId, element, user.token, (err, createdElem) => {
+                /*createFile(parentId, element, user.token, (err, createdObj) => {
                     if(err){
                         callback(err);
                     }
                     else{
-                        this.struct[user.username][parentFolder].files.push(createdElem);
+                        this.struct[user.username][parentFolder].files.push(createdObj);
                         callback()
                     }
                 })*/
-                createFiletxt(parentId, element, user.token, (err, createdElem) => {
+                createFiletxt(parentId, element, user.token, (err, createdObj) => {
                     if(err){
                         callback(err);
                     }
                     else{
-                        this.struct[user.username][parentFolder].files.push(createdElem);
+                        this.struct[user.username][parentFolder].files.push(createdObj);
                         callback()
                     }
                 })
@@ -180,7 +174,7 @@ class CustomVirtualResources
 
         this.struct[user.username][parentFolder].folders.forEach((el) => {
             if(element == el.title){
-                deleteDirectory(el.id, user.token, (err, res) => {
+                deleteDirectory(el.id, user.token, (err) => {
                     if(err){
                         callback(err)
                     }
@@ -194,7 +188,7 @@ class CustomVirtualResources
 
         this.struct[user.username][parentFolder].files.forEach((el) => {
             if(element == el.title){
-                deleteFile(el.id, user.token, (err, res) => {
+                deleteFile(el.id, user.token, (err) => {
                     if(err){
                         callback(err)
                     }
@@ -328,7 +322,7 @@ class CustomVirtualResources
         stream.on('finish', () => {
             this.struct[user.username][parentFolder].files.forEach((el) => {
                 if(element == el.title){
-                    rewritingFile(folderId, el.title, content, user.token, (err, res) => {
+                    rewritingFile(folderId, el.title, content, user.token, (err) => {
                         if(err){
                             callback(err, null)
                         }
@@ -349,21 +343,25 @@ class CustomVirtualResources
             const folderId = this.struct[user.username][pathTo].current.id;
                 this.struct[user.username][parentFolder].folders.forEach((el) => {
                     if(element == el.title){
-                        copyDirToFolder(folderId, el.id, user.token, (err, res) => {
+                        copyDirToFolder(folderId, el.id, user.token, (err) => {
                             if(err){
                                 callback(err, null)
                             }
-                            callback(null, true)
+                            else{
+                                callback(null, true)
+                            }
                         })
                     }
                 })
                 this.struct[user.username][parentFolder].files.forEach((el) => {
                     if(element == el.title){
-                        copyFileToFolder(folderId, el.id, user.token, (err, res) => {
+                        copyFileToFolder(folderId, el.id, user.token, (err) => {
                             if(err){
                                 callback(err, null)
                             }
-                            callback(null, true)
+                            else{
+                                callback(null, true)
+                            }
                         })
                     }
                 })
@@ -387,21 +385,25 @@ class CustomVirtualResources
 
         this.struct[user.username][parentFolder].folders.forEach((el) => {
             if(element == el.title){
-                renameFolder(el.id, newName, user.token, (err, rename) => {
+                renameFolder(el.id, newName, user.token, (err) => {
                     if(err){
                         callback(err, null)
                     }
-                    callback(null, true)
+                    else{
+                        callback(null, true)
+                    }
                 })
             }
         })
         this.struct[user.username][parentFolder].files.forEach((el) => {
             if(element == el.title){
-                renameFile(el.id, newName, user.token, (err, rename) => {
+                renameFile(el.id, newName, user.token, (err) => {
                     if(err){
                         callback(err, null)
                     }
-                    callback(null, true)
+                    else{
+                        callback(null, true)
+                    }
                 })
             }
         })
@@ -415,19 +417,19 @@ class CustomVirtualResources
         let {element: elementTo, parentFolder: parentFolderTo} = this.parsePath(pathTo);
         const user = ctx.context.user;
 
+        var isRename = false;
         if(parentFolderFrom == parentFolderTo){
-            var {isRename} = this.checkRename(elementFrom, elementTo, parentFolderFrom, parentFolderTo, user)
-        }
-        else{
-            var isRename = false;
+            var isRename = this.checkRename(elementFrom, elementTo, parentFolderFrom, parentFolderTo, user)
         }
 
         if(isRename){
            this.rename(pathFrom, elementTo, ctx, (err, rename) => {
                if(err){
-                   callback(err, null)
+                   callback(err, rename)
                }
-               callback(null, true)
+               else{
+                callback(null, rename)
+               }
            })
         }
         else{
@@ -435,7 +437,7 @@ class CustomVirtualResources
                 const folderId = this.struct[user.username][pathTo].current.id;
                 this.struct[user.username][parentFolderFrom].folders.forEach((el) => {
                     if(elementFrom == el.title){
-                        moveDirToFolder(folderId, el.id, user.token, (err, res) => {
+                        moveDirToFolder(folderId, el.id, user.token, (err) => {
                             if(err){
                                 callback(err, null)
                             }
@@ -445,7 +447,7 @@ class CustomVirtualResources
                 })
                 this.struct[user.username][parentFolderFrom].files.forEach((el) => {
                     if(elementFrom == el.title){
-                        moveFileToFolder(folderId, el.id, user.token, (err, res) => {
+                        moveFileToFolder(folderId, el.id, user.token, (err) => {
                             if(err){
                                 callback(err, null)
                             }
