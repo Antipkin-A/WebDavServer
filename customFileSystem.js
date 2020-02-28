@@ -34,7 +34,7 @@ class customFileSystem extends webdav.FileSystem
 
         this.manageResource.create(sPath, ctx, (err) => {
             if(err){
-                callback(webdav.Errors.IntermediateResourceMissing)
+                callback(err)
             }
             callback();
         });
@@ -45,7 +45,7 @@ class customFileSystem extends webdav.FileSystem
 
         this.manageResource.delete(sPath, ctx, (err) => {
             if(err){
-                callback(webdav.Errors.IntermediateResourceMissing)
+                callback(err)
             }
             callback();
         })
@@ -58,11 +58,13 @@ class customFileSystem extends webdav.FileSystem
         const sPathFrom = pathFrom.toString();
         const sPathTo = pathTo.toString();
 
-        this.manageResource.move(sPathFrom, sPathTo, ctx, (err, res) => {
+        this.manageResource.move(sPathFrom, sPathTo, ctx, (err, isMove) => {
             if(err){
-                callback(err, false)
+                callback(err, isMove)
             }
-            callback(null, true)
+            else{
+                callback(null, isMove)
+            }
         })
     }
 
@@ -73,21 +75,20 @@ class customFileSystem extends webdav.FileSystem
         const sPathFrom = pathFrom.toString();
         const sPathTo = pathTo.toString();
 
-        this.manageResource.copy(sPathFrom, sPathTo, ctx, (err, res) => {
+        this.manageResource.copy(sPathFrom, sPathTo, ctx, (err, isCopy) => {
             if(err){
-                callback(err, false)
+                callback(err, isCopy)
             }
-            callback(null, true)
+            else{
+                callback(null, isCopy)
+            }
         })
     }
 
     _size(path, ctx, callback){
         const sPath = path.toString();
 
-        this.manageResource.getSize(sPath, ctx, (err, size) => {
-            if(err){
-                callback(err, null)
-            }
+        this.manageResource.getSize(sPath, ctx, (size) => {
             callback(null, size)
         })
     }
@@ -95,12 +96,12 @@ class customFileSystem extends webdav.FileSystem
     _openWriteStream(path, ctx, callback){
         const sPath = path.toString();
 
-        this.manageResource.writeFile(sPath, ctx, (err, stream) => {
+        this.manageResource.writeFile(sPath, ctx, (err, streamFile) => {
             if(err){
                 callback(err, null)
             }
             else{
-                callback(null, stream)
+                callback(null, streamFile)
             }
         })
     }
@@ -108,12 +109,12 @@ class customFileSystem extends webdav.FileSystem
     _openReadStream(path, ctx, callback){
         const sPath = path.toString();
 
-        this.manageResource.downloadFile(sPath, ctx, (err, file) => {
+        this.manageResource.downloadFile(sPath, ctx, (err, streamFile) => {
             if(err){
                 callback(err, null)
             }
             else{
-                callback(null, file)
+                callback(null, streamFile)
             }
         })
     }
@@ -121,30 +122,23 @@ class customFileSystem extends webdav.FileSystem
     _type(path, ctx, callback) {
         const sPath = path.toString();
 
-        this.manageResource.getType(sPath, ctx, (err, type) => {
-            if(err){
-                callback(err, null)
-            }
-            else{
+        this.manageResource.getType(sPath, ctx, (type) => {
                 callback(null, type)
-            }
         })
     }
 
     _lastModifiedDate(path, ctx, callback){
         const sPath = path.toString();
 
-        this.manageResource.getlastModifiedDate(sPath, ctx, (err, date) => {
-            if(err){
-                callback(err, null)
-            }
+        this.manageResource.getlastModifiedDate(sPath, ctx, (date) => {
             callback(null, date)
         })
     }
 
     _readDir(path, ctx, callback){
         const sPath = path.toString();
-        let elemOfDir = []
+        let elemOfDir = [];
+
         this.manageResource.readDir(sPath, ctx, (err, struct) => {
             if(err){
                 callback(err, null)

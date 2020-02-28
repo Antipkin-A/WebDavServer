@@ -57,7 +57,12 @@ var getStructDirectory = function(folderId, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, JSON.parse(body).response);
+            if(JSON.parse(body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(body).error.message}`), null)
+            }
+            else{
+                callback(null, JSON.parse(body).response);
+            }
         }
     )
 }
@@ -80,7 +85,12 @@ var createDirectory = function(parentId, title, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, JSON.parse(response.body).response);
+            else if(JSON.parse(response.body).statusCode !== 201){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, JSON.parse(response.body).response);
+            }
         }
     )
 }
@@ -104,7 +114,12 @@ var deleteDirectory = function(folderId, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, JSON.parse(response.body).response);
+            else if(JSON.parse(response.body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(body).error.message}`), null);
+            }
+            else{
+                callback(null, JSON.parse(response.body).response);
+            }
         }
     )
 }
@@ -153,7 +168,12 @@ var createFile = function(folderId, title, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, JSON.parse(response.body).response);
+            else if(JSON.parse(response.body).statusCode !== 201){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, JSON.parse(response.body).response);
+            }
         }
     )
 }
@@ -177,7 +197,12 @@ var createFiletxt = function(folderId, title, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, JSON.parse(response.body).response);
+            else if(JSON.parse(response.body).statusCode !== 201){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, JSON.parse(response.body).response);
+            }
         }
     )
 }
@@ -201,7 +226,12 @@ var deleteFile = function(fileId, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, JSON.parse(response.body).response);
+            else if(JSON.parse(response.body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(body).error.message}`), null);
+            }
+            else{
+                callback(null, JSON.parse(response.body).response);
+            }
         }
     )
 }
@@ -223,7 +253,12 @@ var rewritingFile = function(folderId, title, content, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, response)
+            else if(JSON.parse(response.body).statusCode !== 201){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, response)
+            }
         }
     )
 }
@@ -249,7 +284,12 @@ var  copyFileToFolder = function(folderId, files, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, response)
+            else if(JSON.parse(response.body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, response)
+            }
         }
     )
 }
@@ -275,7 +315,12 @@ var  copyDirToFolder = function(folderId, folders, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, response)
+            else if(JSON.parse(response.body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, response)
+            }
         }
     )
 }
@@ -301,7 +346,12 @@ var  moveDirToFolder = function(folderId, folders, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, response)
+            else if(JSON.parse(response.body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, response)
+            }
         }
     )
 }
@@ -327,7 +377,12 @@ var  moveFileToFolder = function(folderId, files, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, response)
+            else if(JSON.parse(response.body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, response)
+            }
         }
     )
 }
@@ -350,7 +405,12 @@ var renameFolder = function(folderId, newName, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, response)
+            else if(JSON.parse(response.body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, response)
+            }
         }
     )
 }
@@ -373,7 +433,12 @@ var renameFile = function(fileId, newName, token, callback)
             if(err){
                 callback(err, null)
             }
-            callback(null, response)
+            else if(JSON.parse(response.body).statusCode !== 200){
+                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
+            }
+            else{
+                callback(null, response)
+            }
         }
     )
 }
