@@ -15,8 +15,8 @@ const {
     moveFileToFolder,
     renameFolder,
     renameFile
-} = require('./requestAPI.js');
-const {pathRootDirectory} = require('./config.ts');
+} = require('./requestAPI/requestAPI.js');
+const {method} = require('./config.js');
 const streamWrite = require('./Writable.js');
 
 class CustomVirtualResources
@@ -206,7 +206,7 @@ class CustomVirtualResources
         const user = ctx.context.user;
         
         if(path == '/'){
-            let folderId = pathRootDirectory;
+            let folderId = method.pathRootDirectory;
             getStructDirectory(folderId, user.token, (err, structDir) => {
                 if(err){
                     callback(webdav.Errors.ResourceNotFound, null)
@@ -296,18 +296,18 @@ class CustomVirtualResources
         const user = ctx.context.user;
         const {element, parentFolder} = this.parsePath(path);
 
-            this.struct[user.username][parentFolder].files.forEach((el) => {
-                if(element == el.title){
-                    getFileDownloadUrl(el.folderId, el.id, user.token, (err, streamFile) => {
-                        if(err){
-                            callback(err, null);
-                        }
-                        else{
-                            callback(null, streamFile);
-                        }
-                    })
-                }
-            })
+        this.struct[user.username][parentFolder].files.forEach((el) => {
+            if(element == el.title){
+                getFileDownloadUrl(el.folderId, el.id, user.token, (err, streamFile) => {
+                    if(err){
+                        callback(err, null);
+                    }
+                    else{
+                        callback(null, streamFile);
+                    }
+                })
+            }
+        })
     }
 
     writeFile(path, ctx, callback){

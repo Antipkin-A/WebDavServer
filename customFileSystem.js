@@ -141,15 +141,17 @@ class customFileSystem extends webdav.FileSystem
 
         this.manageResource.readDir(sPath, ctx, (err, struct) => {
             if(err){
-                callback(err, null)
+                callback(err)
             }
-            struct.folders.forEach(el => {
-                elemOfDir.push(el.title);
-            });
-            struct.files.forEach(el => {
-                elemOfDir.push(el.title);
-            });
-            callback(null, elemOfDir)
+            else{
+                struct.folders.forEach(el => {
+                    elemOfDir.push(el.title);
+                });
+                struct.files.forEach(el => {
+                    elemOfDir.push(el.title);
+                });
+                callback(null, elemOfDir)
+            }
         })
     }
 }

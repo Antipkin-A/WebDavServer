@@ -1,5 +1,5 @@
 const webdav = require('webdav-server').v2;
-const {requestAuth} = require('./requestAPI.js');
+const {requestAuth} = require('./requestAPI/requestAPI.js');
 
 class customUserManager extends webdav.SimpleUserManager
 {

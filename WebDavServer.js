@@ -1,7 +1,7 @@
 const webdav = require('webdav-server').v2;
 const FileSystem = require('./customFileSystem');
 const customUserManager = require('./customUserManager');
-const {portListener} = require('./config.ts');
+const {portListener} = require('./config.js');
 
 const userManager = new customUserManager();
 
