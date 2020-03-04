@@ -1,5 +1,4 @@
 const webdav = require('webdav-server').v2;
-const request = require('request');
 const {
     getStructDirectory,
     createDirectory,

@@ -20,19 +20,14 @@ var requestAuth = function(username, password, callback)
                 "password": password
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err);
-                    }
-                    else{
-                        callback(null, JSON.parse(body).response.token);
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err);
+                }
+                else{
+                    callback(null, JSON.parse(body).response.token);
+                }
+            });
         }
     )
 }
@@ -44,19 +39,14 @@ var getStructDirectory = function(folderId, token, callback)
             url: `${domen}${api}${apiFiles}${folderId}`,
             headers: getHeader('application/json', token),
         }, (err, response, body) => {
-            if(err){
-                callback(err, null)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err);
-                    }
-                    else{
-                        callback(null, JSON.parse(body).response);
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err);
+                }
+                else{
+                    callback(null, JSON.parse(body).response);
+                }
+            });
         }
     )
 }
@@ -72,19 +62,14 @@ var createDirectory = function(parentId, title, token, callback)
                 "title": title
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err, null)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback(null, JSON.parse(body).response);
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback(null, JSON.parse(body).response);
+                }
+            });
         }
     )
 }
@@ -101,19 +86,14 @@ var deleteDirectory = function(folderId, token, callback)
                 "immediately": true
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback();
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback();
+                }
+            });
         }
     )
 }
@@ -125,21 +105,16 @@ var getFileDownloadUrl = function(parentId, fileId, token, callback)
             url: `${domen}${api}${apiFiles}${method.file}${fileId}${method.openedit}`,
             headers: getHeader('application/json', token),
         }, (err, response, body) => {
-            if(err){
-                callback(err, null);
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        let streamFile = request.get(JSON.parse(body).response.document.url);
-                        streamFile.end();
-                        callback(null, streamFile);
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    let streamFile = request.get(JSON.parse(body).response.document.url);
+                    streamFile.end();
+                    callback(null, streamFile);
+                }
+            });
         }
     )
 }
@@ -155,19 +130,14 @@ var createFile = function(folderId, title, token, callback)
                 "title": title
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err, null)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback(null, JSON.parse(body).response);
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback(null, JSON.parse(body).response);
+                }
+            });
         }
     )
 }
@@ -184,19 +154,14 @@ var createFiletxt = function(folderId, title, token, callback)
                 "content": ' '
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err, null)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback(null, JSON.parse(body).response);
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback(null, JSON.parse(body).response);
+                }
+            });
         }
     )
 }
@@ -213,19 +178,14 @@ var deleteFile = function(fileId, token, callback)
                 "immediately": true
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback();
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback();
+                }
+            });
         }
     )
 }
@@ -240,19 +200,14 @@ var rewritingFile = function(folderId, title, content, token, callback)
             headers: getHeader('application/json', token),
             body: content
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback()
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback()
+                }
+            });
         }
     )
 }
@@ -271,19 +226,14 @@ var  copyFileToFolder = function(folderId, files, token, callback)
                 "deleteAfter": true
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback()
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback()
+                }
+            });
         }
     )
 }
@@ -302,19 +252,14 @@ var  copyDirToFolder = function(folderId, folders, token, callback)
                 "deleteAfter": true
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback()
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback()
+                }
+            });
         }
     )
 }
@@ -333,19 +278,14 @@ var  moveDirToFolder = function(folderId, folders, token, callback)
                 "deleteAfter": true
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback()
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback()
+                }
+            });
         }
     )
 }
@@ -364,19 +304,14 @@ var  moveFileToFolder = function(folderId, files, token, callback)
                 "deleteAfter": true
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback()
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback()
+                }
+            });
         }
     )
 }
@@ -392,19 +327,14 @@ var renameFolder = function(folderId, newName, token, callback)
                 "title": newName
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback()
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback()
+                }
+            });
         }
     )
 }
@@ -420,19 +350,14 @@ var renameFile = function(fileId, newName, token, callback)
                 "title": newName
             }
         }, (err, response, body) => {
-            if(err){
-                callback(err)
-            }
-            else if(!err){
-                exceptionResponse(body, (err) => {
-                    if(err){
-                        callback(err)
-                    }
-                    else{
-                        callback()
-                    }
-                });
-            }
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback()
+                }
+            });
         }
     )
 }
