@@ -1,5 +1,5 @@
 var request = require('request');
-const {getHeader} = require('./helper.js')
+const {getHeader, exceptionResponse} = require('./helper.js')
 const {
     domen,
     api,
@@ -19,15 +19,19 @@ var requestAuth = function(username, password, callback)
                 "userName": username,
                 "password": password
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            if(JSON.parse(response.body).statusCode !== 201){
-                callback(new Error('authentication failed'), null)
-            }
-            else{
-                callback(null, JSON.parse(response.body).response.token);
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err);
+                    }
+                    else{
+                        callback(null, JSON.parse(body).response.token);
+                    }
+                });
             }
         }
     )
@@ -43,11 +47,15 @@ var getStructDirectory = function(folderId, token, callback)
             if(err){
                 callback(err, null)
             }
-            if(JSON.parse(body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(body).error.message}`), null)
-            }
-            else{
-                callback(null, JSON.parse(body).response);
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err);
+                    }
+                    else{
+                        callback(null, JSON.parse(body).response);
+                    }
+                });
             }
         }
     )
@@ -63,15 +71,19 @@ var createDirectory = function(parentId, title, token, callback)
             form: {
                 "title": title
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err, null)
             }
-            else if(JSON.parse(response.body).statusCode !== 201){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
-            }
-            else{
-                callback(null, JSON.parse(response.body).response);
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback(null, JSON.parse(body).response);
+                    }
+                });
             }
         }
     )
@@ -88,15 +100,19 @@ var deleteDirectory = function(folderId, token, callback)
                 "deleteAfter": true,
                 "immediately": true
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(body).error.message}`));
-            }
-            else{
-                callback();
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback();
+                    }
+                });
             }
         }
     )
@@ -112,13 +128,17 @@ var getFileDownloadUrl = function(parentId, fileId, token, callback)
             if(err){
                 callback(err, null);
             }
-            else if(JSON.parse(body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(body).error.message}`), null);
-            }
-            else{
-                let streamFile = request.get(JSON.parse(body).response.document.url);
-                streamFile.end();
-                callback(null, streamFile);
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        let streamFile = request.get(JSON.parse(body).response.document.url);
+                        streamFile.end();
+                        callback(null, streamFile);
+                    }
+                });
             }
         }
     )
@@ -134,15 +154,19 @@ var createFile = function(folderId, title, token, callback)
             form: {
                 "title": title
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err, null)
             }
-            else if(JSON.parse(response.body).statusCode !== 201){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
-            }
-            else{
-                callback(null, JSON.parse(response.body).response);
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback(null, JSON.parse(body).response);
+                    }
+                });
             }
         }
     )
@@ -159,15 +183,19 @@ var createFiletxt = function(folderId, title, token, callback)
                 "title": title,
                 "content": ' '
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err, null)
             }
-            else if(JSON.parse(response.body).statusCode !== 201){
-                callback(new Error(`${JSON.parse(response.body).error.message}`), null);
-            }
-            else{
-                callback(null, JSON.parse(response.body).response);
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback(null, JSON.parse(body).response);
+                    }
+                });
             }
         }
     )
@@ -184,15 +212,19 @@ var deleteFile = function(fileId, token, callback)
                 "deleteAfter": true,
                 "immediately": true
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(body).error.message}`));
-            }
-            else{
-                callback();
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback();
+                    }
+                });
             }
         }
     )
@@ -207,15 +239,19 @@ var rewritingFile = function(folderId, title, content, token, callback)
             url: `${domen}${api}${apiFiles}${folderId}${method.insert}${encode_title}${method.no_createFile}`,
             headers: getHeader('application/json', token),
             body: content
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 201){
-                callback(new Error(`${JSON.parse(response.body).error.message}`));
-            }
-            else{
-                callback()
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback()
+                    }
+                });
             }
         }
     )
@@ -234,15 +270,19 @@ var  copyFileToFolder = function(folderId, files, token, callback)
                 "conflictResolveType": "Skip",
                 "deleteAfter": true
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`));
-            }
-            else{
-                callback()
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback()
+                    }
+                });
             }
         }
     )
@@ -261,15 +301,19 @@ var  copyDirToFolder = function(folderId, folders, token, callback)
                 "conflictResolveType": "Skip",
                 "deleteAfter": true
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`));
-            }
-            else{
-                callback()
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback()
+                    }
+                });
             }
         }
     )
@@ -288,15 +332,19 @@ var  moveDirToFolder = function(folderId, folders, token, callback)
                 "conflictResolveType": "Skip",
                 "deleteAfter": true
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`));
-            }
-            else{
-                callback()
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback()
+                    }
+                });
             }
         }
     )
@@ -315,15 +363,19 @@ var  moveFileToFolder = function(folderId, files, token, callback)
                 "conflictResolveType": "Skip",
                 "deleteAfter": true
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`));
-            }
-            else{
-                callback()
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback()
+                    }
+                });
             }
         }
     )
@@ -339,15 +391,19 @@ var renameFolder = function(folderId, newName, token, callback)
             form: {
                 "title": newName
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`));
-            }
-            else{
-                callback()
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback()
+                    }
+                });
             }
         }
     )
@@ -363,15 +419,19 @@ var renameFile = function(fileId, newName, token, callback)
             form: {
                 "title": newName
             }
-        }, (err, response) => {
+        }, (err, response, body) => {
             if(err){
                 callback(err)
             }
-            else if(JSON.parse(response.body).statusCode !== 200){
-                callback(new Error(`${JSON.parse(response.body).error.message}`));
-            }
-            else{
-                callback()
+            else if(!err){
+                exceptionResponse(body, (err) => {
+                    if(err){
+                        callback(err)
+                    }
+                    else{
+                        callback()
+                    }
+                });
             }
         }
     )

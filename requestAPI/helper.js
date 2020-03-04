@@ -9,6 +9,20 @@ var getHeader = function(contentType, token){
     })
 }
 
+var exceptionResponse = function(body, callback){
+    try{
+        const statusCode = JSON.parse(body).statusCode;
+        if(statusCode !== 201 && statusCode !== 200){
+            callback(new Error(`${JSON.parse(body).error.message}`), null)
+        }
+        else callback()
+    }
+    catch{
+        callback(new Error('Error JSONparse response from api'), null)
+    }
+}
+
 module.exports = {
-    getHeader
+    getHeader,
+    exceptionResponse
 }
