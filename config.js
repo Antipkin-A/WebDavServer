@@ -24,6 +24,9 @@ module.exports = {
     // Get root directory in "My documents"
     pathRootDirectory: '@my',
 
+    // Get root directory in "Common Folder"
+    pathCommonDirectory: '@common',
+
     // Operations with folders
     folder: 'folder/',
 
@@ -49,13 +52,3 @@ module.exports = {
     move: 'fileops/move',
   }
 }
-
-/*export const pathRootDirectory = '@my';
-export const folder = 'folder/';
-export const file = 'file/';
-export const text = '/text';
-export const openedit = '/openedit';
-export const insert = '/insert?title=';
-export const no_createFile = '&createNewIfExist=false';
-export const copy = 'fileops/copy';
-export const move = 'fileops/move';*/

@@ -96,6 +96,34 @@ class CustomVirtualResources
         return isRename
     }
 
+    getRootFolder(path, user, callback){
+        let structRoot = {
+            files: [],
+            folders: [],
+            current: {}
+        }
+        getStructDirectory(method.pathRootDirectory, user.token, (err, structDir) => {
+            if(err){}
+            else{
+                structRoot.folders.push(structDir.current)
+            }
+            getStructDirectory(method.pathCommonDirectory, user.token, (err, structDir) => {
+                if(err){
+                    if(structRoot.folders.length == 0){
+                        callback(webdav.Errors.ResourceNotFound, null)
+                    }
+                    else{
+                        callback(null, structRoot)
+                    }
+                }
+                else{
+                    structRoot.folders.push(structDir.current)
+                    callback(null, structRoot)
+                }
+            })
+        })
+    }
+
     fastExistCheck(path, ctx, callback){
         if(path == '/'){
             callback(true);
@@ -140,6 +168,7 @@ class CustomVirtualResources
                     }
                     else{
                         this.struct[user.username][parentFolder].folders.push(createdObj)
+                        this.readDir(path, ctx, callback)
                         callback()
                     }
                 })
@@ -160,6 +189,7 @@ class CustomVirtualResources
                     }
                     else{
                         this.struct[user.username][parentFolder].files.push(createdObj);
+                        this.readDir(path, ctx, callback)
                         callback()
                     }
                 })
@@ -179,6 +209,7 @@ class CustomVirtualResources
                     }
                     else{
                         delete this.struct[user.username][parentFolder].folders.el
+                        delete this.struct[user.username][path]
                         callback(null)
                     }
                 })
@@ -193,6 +224,7 @@ class CustomVirtualResources
                     }
                     else{
                         delete this.struct[user.username][parentFolder].files.el
+                        delete this.struct[user.username][path]
                         callback(null)
                     }
                 })
@@ -205,8 +237,7 @@ class CustomVirtualResources
         const user = ctx.context.user;
         
         if(path == '/'){
-            let folderId = method.pathRootDirectory;
-            getStructDirectory(folderId, user.token, (err, structDir) => {
+            this.getRootFolder(path, user, (err, structDir) => {
                 if(err){
                     callback(webdav.Errors.ResourceNotFound, null)
                 }
