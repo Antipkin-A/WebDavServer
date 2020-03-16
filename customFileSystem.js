@@ -1,6 +1,6 @@
 const webdav = require('webdav-server').v2;
 const request = require('request');
-const VirtualResources = require('./customVirtualResources');
+const VirtualResources = require('./customVirtualResources/customVirtualResources');
 
 
 class customFileSystem extends webdav.FileSystem

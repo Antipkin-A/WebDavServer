@@ -50,5 +50,7 @@ module.exports = {
 
     // Method move for files or folders
     move: 'fileops/move',
+
+    upload: '/upload'
   }
 }

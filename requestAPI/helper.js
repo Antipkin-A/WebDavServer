@@ -18,6 +18,10 @@ var exceptionResponse = function(err, body, callback){
             callback(err)
         }
         const statusCode = JSON.parse(body).statusCode;
+        if(statusCode == 403){
+            logger.log('warn', `${JSON.parse(body).error.message}`)
+            callback(webdav.Error.Forbidden, null)
+        }
         if(statusCode !== 201 && statusCode !== 200){
             logger.log('warn', `${JSON.parse(body).error.message}`)
             callback(new Error(`${JSON.parse(body).error.message}`), null)

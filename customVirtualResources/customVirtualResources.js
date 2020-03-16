@@ -14,9 +14,9 @@ const {
     moveFileToFolder,
     renameFolder,
     renameFile
-} = require('./requestAPI/requestAPI.js');
-const {method} = require('./config.js');
-const streamWrite = require('./Writable.js');
+} = require('../requestAPI/requestAPI.js');
+const {method} = require('../config.js');
+const streamWrite = require('../Writable.js');
 
 class CustomVirtualResources
 {
@@ -33,6 +33,7 @@ class CustomVirtualResources
         }
         this.struct[user][path] = {};
         this.struct[user][path] = structDir;
+        this.struct[user].LiveTime = new Date;
     }
 
     parsePath(path){
@@ -96,7 +97,7 @@ class CustomVirtualResources
         return isRename
     }
 
-    getRootFolder(path, user, callback){
+    getRootFolder(user, callback){
         let structRoot = {
             files: [],
             folders: [],
@@ -146,11 +147,30 @@ class CustomVirtualResources
                     }
                 })
                 if(!fileisExist){
-                    callback(false);
+                    if(ctx.request.method !== 'PROPFIND'){
+                        callback(false);
+                    }
+                    else{
+                        this.readDir(path, {context: ctx}, (err, st) => {
+                            if(err){
+                                callback(false);
+                            }
+                            else{
+                                callback(true);
+                            }
+                        })
+                    }
                 }
             }
             catch{
-                callback(false);
+                this.readDir(path, {context: ctx}, (err, st) => {
+                    if(err){
+                        callback(false);
+                    }
+                    else{
+                        callback(true);
+                    }
+                })
             }
         }
     }
@@ -237,7 +257,7 @@ class CustomVirtualResources
         const user = ctx.context.user;
         
         if(path == '/'){
-            this.getRootFolder(path, user, (err, structDir) => {
+            this.getRootFolder(user, (err, structDir) => {
                 if(err){
                     callback(webdav.Errors.ResourceNotFound, null)
                 }
@@ -250,48 +270,61 @@ class CustomVirtualResources
         else{
             const {element, parentFolder} = this.parsePath(path);
 
-            if(!this.struct[user.username][parentFolder]){
-                this.readDirRecursion(parentFolder, ctx, (err) => {
-                    if(err){
-                        callback(webdav.Errors.ResourceNotFound, null)
-                    }
-                    else{
-                        if(!this.struct[user.username][parentFolder]){
-                            this.readDir(path, ctx, callback)
+            try{
+                if(!this.struct[user.username][parentFolder]){
+                    this.readDirRecursion(parentFolder, ctx, (err) => {
+                        if(err){
+                            callback(webdav.Errors.ResourceNotFound, null)
                         }
                         else{
-                            this.struct[user.username][parentFolder].folders.forEach((el) => {
-                                if(element == el.title){
-                                    let folderId = el.id;
-                                    getStructDirectory(folderId, user.token, (err, structDir) => {
-                                        if(err){
-                                            callback(webdav.Errors.ResourceNotFound, null)
-                                        }
-                                        this.addStructDir(path, user.username, structDir)
-                                        callback(null, this.struct[user.username][path])
-                                    })
+                            if(!this.struct[user.username][parentFolder]){
+                                this.readDir(path, ctx, callback)
+                            }
+                            else{
+                                this.struct[user.username][parentFolder].folders.forEach((el) => {
+                                    if(element == el.title){
+                                        let folderId = el.id;
+                                        getStructDirectory(folderId, user.token, (err, structDir) => {
+                                            if(err){
+                                                callback(webdav.Errors.ResourceNotFound, null)
+                                            }
+                                            this.addStructDir(path, user.username, structDir)
+                                            callback(null, this.struct[user.username][path])
+                                        })
+                                    }
+                                })
+                            }
+                        }
+                    })
+                }
+                else{
+                    this.struct[user.username][parentFolder].folders.forEach((el) => {
+                        if(element == el.title){
+                            let folderId = el.id;
+                            getStructDirectory(folderId, user.token, (err, structDir) => {
+                                if(err){
+                                    callback(webdav.Errors.ResourceNotFound, null)
+                                }
+                                else{
+                                    this.addStructDir(path, user.username, structDir)
+                                    callback(null, this.struct[user.username][path])
                                 }
                             })
                         }
+                    })
+                }
+            }
+            catch{
+                this.getRootFolder(user, (err, st) => {
+                    if(err){
+                        callback(err, null)
+                    }
+                    else{
+                        this.addStructDir('/', user.username, st)
+                        this.readDir(path, ctx, callback)
                     }
                 })
-            }
-            else{
-                this.struct[user.username][parentFolder].folders.forEach((el) => {
-                    if(element == el.title){
-                        let folderId = el.id;
-                        getStructDirectory(folderId, user.token, (err, structDir) => {
-                            if(err){
-                                callback(webdav.Errors.ResourceNotFound, null)
-                            }
-                            else{
-                                this.addStructDir(path, user.username, structDir)
-                                callback(null, this.struct[user.username][path])
-                            }
-                        })
-                    }
-                })
-            }
+            }             
         }
     }
 
