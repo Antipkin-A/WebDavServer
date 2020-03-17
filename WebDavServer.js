@@ -14,6 +14,7 @@ const server = new webdav.WebDAVServer({
 });
 server.afterRequest((arg, next) => {
     logger.log('info', `>> ${arg.user.username} ${arg.request.method} ${arg.fullUri()} > ${arg.response.statusCode} ${arg.response.statusMessage}`);
+    //console.log(arg.server.fileSystems['/'].customFileSystem[manageResource])
     next();
 })
 

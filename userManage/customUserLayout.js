@@ -1,4 +1,4 @@
-const customSimpleUser = require('./user.js')
+const customSimpleUser = require('./customSimpleUser.js')
 
 class customUserLayout{
     constructor(){
@@ -14,7 +14,7 @@ class customUserLayout{
     }
 
     checkExpireUser(username){
-        const difference = 5000;
+        const difference = 50000;
         const notExpire = (new Date - this.getUser(username).timetmp) < difference ? true : false
         return notExpire 
     }
