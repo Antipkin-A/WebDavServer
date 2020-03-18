@@ -1,4 +1,4 @@
-const webdav = require('webdav-server').v2;
+const {timeIsCleanTrash} = require('../config.js');
 
 class SimpleStruct
 {
@@ -28,6 +28,25 @@ class SimpleStruct
         catch{
             return false
         }
+    }
+
+    isCleanTrash(username){
+        try{
+            const liveTime = timeIsCleanTrash;
+            const isClean =  ((new Date - this.struct[username].lastUpdate) > liveTime) ? true : false;
+            return isClean
+        }
+        catch{
+            return false
+        }
+    }
+
+    cleanTrash(users){
+        users.forEach(user => {
+            if(this.isCleanTrash(user)){
+                delete this.struct[user];
+            }
+        })
     }
 
     setFileObject(path, username, newFile){
@@ -91,6 +110,26 @@ class SimpleStruct
         })
         const isRename = (elementFromIsExist && !elementToIsExist && (parentFolderFrom == parentFolderTo)) ? true : false;
         return isRename
+    }
+
+    renameFolderObject(element, newName, parentFolder, username){
+        this.struct[username][parentFolder].folders.forEach(el => {
+            if(el.title == element){
+                const id = this.struct[username][parentFolder].folders.indexOf(el)
+                this.struct[username][parentFolder].folders[id].title = newName;
+                this.struct[username].lastUpdate = new Date;
+            }
+        })
+    }
+
+    renameFileObject(element, newName, parentFolder, username){
+        this.struct[username][parentFolder].files.forEach(el => {
+            if(el.title == element){
+                const id = this.struct[username][parentFolder].files.indexOf(el)
+                this.struct[username][parentFolder].files[id].title = newName;
+                this.struct[username].lastUpdate = new Date;
+            }
+        })
     }
 
     structIsExpire(path, parentFolder, username){

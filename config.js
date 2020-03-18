@@ -7,6 +7,12 @@ module.exports = {
   // Logging level. Possible values: 'info', 'warn', 'error'
   levelLog: 'info',
 
+  //User cache storage time (msec)
+  timeIsCleanTrash: 36000000,
+
+  //Cache Overflow Check Interval (msec)
+  cleanTrashInterval: 900000,
+
   // Adress of community server OnlyOffice */
   domen: 'http://127.0.0.1:80/',
 
