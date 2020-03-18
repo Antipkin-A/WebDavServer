@@ -127,19 +127,8 @@ class CustomVirtualResources
         }
         else if(ctx.type.isFile){
             switch(parse.parseFileExst(element)){
-                case 'OFFICE_DOC':
+                case 'OFFICE_DOCX_PPTX_XLSX':
                     createFile(parentId, element, user.token, (err, createdObj) => {
-                        if(err){
-                            callback(err);
-                        }
-                        else{
-                            this.structСache.setFileObject(parentFolder, user.username, createdObj)
-                            callback()
-                        }
-                    })
-                    break
-                case 'txt':
-                    createFiletxt(parentId, element, user.token, (err, createdObj) => {
                         if(err){
                             callback(err);
                         }
@@ -151,6 +140,17 @@ class CustomVirtualResources
                     break
                 case 'html':
                     createFilehtml(parentId, element, user.token, (err, createdObj) => {
+                        if(err){
+                            callback(err);
+                        }
+                        else{
+                            this.structСache.setFileObject(parentFolder, user.username, createdObj)
+                            callback()
+                        }
+                    })
+                    break
+                default:
+                    createFiletxt(parentId, element, user.token, (err, createdObj) => {
                         if(err){
                             callback(err);
                         }

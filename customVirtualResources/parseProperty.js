@@ -56,7 +56,7 @@ class parseProperty{
             return exst
         }
         else if(exst == 'docx' || exst == 'xlsx' || exst == 'pptx'){
-            return 'OFFICE_DOC'
+            return 'OFFICE_DOCX_PPTX_XLSX'
         }
     }
 }
