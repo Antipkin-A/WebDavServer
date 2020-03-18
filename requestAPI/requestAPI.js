@@ -166,6 +166,30 @@ var createFiletxt = function(folderId, title, token, callback)
     )
 }
 
+var createFilehtml = function(folderId, title, token, callback)
+{
+    request.post(
+        {
+            method: 'POST',
+            url: `${domen}${api}${apiFiles}${folderId}${method.html}`,
+            headers: getHeader('application/json', token),
+            form: {
+                "title": title,
+                "content": ' '
+            }
+        }, (err, response, body) => {
+            exceptionResponse(err, body, (err) => {
+                if(err){
+                    callback(err)
+                }
+                else{
+                    callback(null, JSON.parse(body).response);
+                }
+            });
+        }
+    )
+}
+
 var deleteFile = function(fileId, token, callback)
 {
     request.delete(
@@ -377,5 +401,6 @@ module.exports = {
     renameFolder,
     renameFile,
     createFiletxt,
+    createFilehtml,
     requestAuth
 };

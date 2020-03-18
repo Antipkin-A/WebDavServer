@@ -13,7 +13,8 @@ const {
     moveDirToFolder,
     moveFileToFolder,
     renameFolder,
-    renameFile
+    renameFile,
+    createFilehtml
 } = require('../requestAPI/requestAPI.js');
 const {method} = require('../config.js');
 const streamWrite = require('../Writable.js');
@@ -126,7 +127,7 @@ class CustomVirtualResources
         }
         else if(ctx.type.isFile){
             switch(parse.parseFileExst(element)){
-                case 'docx':
+                case 'OFFICE_DOC':
                     createFile(parentId, element, user.token, (err, createdObj) => {
                         if(err){
                             callback(err);
@@ -137,7 +138,7 @@ class CustomVirtualResources
                         }
                     })
                     break
-                default:
+                case 'txt':
                     createFiletxt(parentId, element, user.token, (err, createdObj) => {
                         if(err){
                             callback(err);
@@ -147,6 +148,18 @@ class CustomVirtualResources
                             callback()
                         }
                     })
+                    break
+                case 'html':
+                    createFilehtml(parentId, element, user.token, (err, createdObj) => {
+                        if(err){
+                            callback(err);
+                        }
+                        else{
+                            this.structСache.setFileObject(parentFolder, user.username, createdObj)
+                            callback()
+                        }
+                    })
+                    break
             }
         }
     }

@@ -52,7 +52,12 @@ class parseProperty{
     static parseFileExst(fileName){
         let nameArray = fileName.split('.')
         let exst = nameArray[nameArray.length - 1];
-        return exst
+        if(exst == 'txt' || exst == 'html'){
+            return exst
+        }
+        else if(exst == 'docx' || exst == 'xlsx' || exst == 'pptx'){
+            return 'OFFICE_DOC'
+        }
     }
 }
 

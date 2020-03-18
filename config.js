@@ -42,6 +42,9 @@ module.exports = {
     // Create new file '*.txt'
     text: '/text',
 
+    //
+    html: '/html',
+
     // Open edit text file. 
     openedit: '/openedit',
 
