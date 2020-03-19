@@ -19,10 +19,6 @@ setInterval(function(){userManager.storeUser.cleanTrashUsers(function(users){
     server.fileSystems['/'].manageResource.structСache.cleanTrash(users)
 })}, cleanTrashInterval)
 
-server.beforeRequest((arg, next) => {
-    logger.log('info', `>> ${arg.user.username} ${arg.request.method} ${arg.fullUri()} > ${arg.response.statusCode} ${arg.response.statusMessage}`);
-    next();
-})
 server.afterRequest((arg, next) => {
     logger.log('info', `>> ${arg.user.username} ${arg.request.method} ${arg.fullUri()} > ${arg.response.statusCode} ${arg.response.statusMessage}`);
     next();
