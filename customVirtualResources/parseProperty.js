@@ -59,6 +59,13 @@ class parseProperty{
             return 'OFFICE_DOCX_PPTX_XLSX'
         }
     }
+
+    static isExst(fileName){
+        let nameArray = fileName.split('.')
+        let exst = nameArray[nameArray.length - 1];
+        const element = exst == fileName ? `${fileName}.txt` : fileName
+        return element
+    }
 }
 
 module.exports = parseProperty;

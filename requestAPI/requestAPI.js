@@ -110,7 +110,12 @@ var getFileDownloadUrl = function(parentId, fileId, token, callback)
                     callback(err)
                 }
                 else{
-                    let streamFile = request.get(JSON.parse(body).response.document.url);
+                    let streamFile = request.get(
+                        {
+                            url: JSON.parse(body).response.document.url,
+                            headers: getHeader('application/octet-stream', token),
+                        }
+                    );
                     streamFile.end();
                     callback(null, streamFile);
                 }

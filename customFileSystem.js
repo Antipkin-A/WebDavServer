@@ -25,6 +25,7 @@ class customFileSystem extends webdav.FileSystem
         const sPath = path.toString();
 
         this.manageResource.fastExistCheck(sPath, ctx, (exist) => {
+            console.log('exist')
             callback(exist)  
         })
     }

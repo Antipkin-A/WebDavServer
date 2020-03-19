@@ -111,7 +111,7 @@ class CustomVirtualResources
     create(path, ctx, callback){
 
         const user = ctx.context.user;
-        const {element, parentFolder} = parse.parsePath(path);
+        let {element, parentFolder} = parse.parsePath(path);
         let parentId = this.structСache.getStruct(parentFolder, user.username).current.id;
             
         if(ctx.type.isDirectory){
@@ -126,6 +126,7 @@ class CustomVirtualResources
             })
         }
         else if(ctx.type.isFile){
+            element = parse.isExst(element);
             switch(parse.parseFileExst(element)){
                 case 'OFFICE_DOCX_PPTX_XLSX':
                     createFile(parentId, element, user.token, (err, createdObj) => {
